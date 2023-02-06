@@ -8,7 +8,7 @@ import org.jeecg.modules.mzx.model.CustomerSyncModel;
 
 import java.util.List;
 
-public interface BizCustomerServiceMapper extends BaseMapper<BizCustomer> {
+public interface BizCustomerMapper extends BaseMapper<BizCustomer> {
 
     List<UFTAAPartner> getUFTAAPartnerList(@Param("param") CustomerSyncModel param);
 

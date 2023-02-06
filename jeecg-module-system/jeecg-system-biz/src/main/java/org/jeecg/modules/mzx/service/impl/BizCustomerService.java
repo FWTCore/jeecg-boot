@@ -6,18 +6,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.constant.CommonConstant;
-import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.UFTAAPartner;
 import org.jeecg.modules.mzx.enums.ThirdCustomerEnum;
-import org.jeecg.modules.mzx.mapper.BizCustomerServiceMapper;
+import org.jeecg.modules.mzx.mapper.BizCustomerMapper;
 import org.jeecg.modules.mzx.model.CustomerSyncModel;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -25,10 +23,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class BizCustomerService extends ServiceImpl<BizCustomerServiceMapper, BizCustomer> implements IBizCustomerService {
+public class BizCustomerService extends ServiceImpl<BizCustomerMapper, BizCustomer> implements IBizCustomerService {
 
     @Autowired
-    private BizCustomerServiceMapper customerServiceMapper;
+    private BizCustomerMapper customerServiceMapper;
 
     @Override
     @DS("multi-datasource1")
