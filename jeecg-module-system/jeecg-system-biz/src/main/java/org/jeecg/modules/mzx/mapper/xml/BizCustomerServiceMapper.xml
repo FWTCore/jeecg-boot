@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.mzx.mapper.BizCustomerServiceMapper">
+
+    <select id="getUFTAAPartnerList"
+            parameterType="org.jeecg.modules.mzx.model.CustomerSyncModel"
+            resultType="org.jeecg.modules.mzx.entity.UFTAAPartner">
+        select id,code,name,updated,createdTime
+        from UFTData474611_060599.dbo.AA_Partner
+    </select>
+    <select id="getCustomerList" resultType="org.jeecg.modules.mzx.entity.BizCustomer">
+        select id,
+               customer_code,
+               customer_name,
+               overview,
+               data_source,
+               third_id,
+               del_flag,
+               create_by,
+               create_time,
+               update_by,
+               update_time
+        from biz_customer
+        <where>
+            <if test="thirdIds!=null and thirdIds.size()>0">
+                and third_id in
+                <foreach collection="thirdIds" item="item" index="index"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="dataSource!=null">
+                and data_source = #{dataSource}
+            </if>
+        </where>
+
+
+
+
+
+
+    </select>
+
+
+</mapper>
