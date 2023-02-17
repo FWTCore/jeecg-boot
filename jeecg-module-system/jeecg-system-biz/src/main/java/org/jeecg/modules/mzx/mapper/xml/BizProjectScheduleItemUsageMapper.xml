@@ -3,4 +3,31 @@
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectScheduleItemUsageMapper">
 
 
+    <insert id="CreateScheduleItemUsage"  parameterType="org.jeecg.modules.mzx.vo.ProjectScheduleUsageDTO">
+        <if test="param!=null and param.projectId!=null
+        and param.projectScheduleTemplateId!=null and param.projectScheduleUsageId!=null">
+            insert into biz_project_schedule_item_usage(id, project_id, project_schedule_template_id, project_schedule_usage_id,
+            project_schedule_item_template_id,
+            project_schedule_item_template_parent_id, item_name, default_text,
+            directions, sort_order, create_by, create_time, update_by, update_time)
+            select replace(uuid(), '-', ''),
+            #{param.projectId},
+            project_schedule_template_id,
+            #{param.projectScheduleUsageId},
+            id,
+            parent_id,
+            item_name,
+            default_text,
+            directions,
+            sort_order,
+            #{param.userName},
+            now(),
+            null,
+            null
+            from biz_project_schedule_item_template
+            where project_schedule_template_id = #{param.projectScheduleTemplateId}
+            and status = 1
+            and del_flag = 0
+        </if>
+    </insert>
 </mapper>

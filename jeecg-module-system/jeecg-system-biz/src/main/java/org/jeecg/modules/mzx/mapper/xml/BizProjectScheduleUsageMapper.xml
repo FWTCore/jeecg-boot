@@ -2,5 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectScheduleUsageMapper">
 
+    <insert id="CreateScheduleUsage" parameterType="org.jeecg.modules.mzx.vo.ProjectScheduleUsageDTO">
+    <if test="param!=null and param.projectId!=null and param.projectScheduleTemplateId!=null
+        and param.projectScheduleUsageId!=null">
+        insert into biz_project_schedule_usage(id, project_id, project_schedule_template_id, schedule_template_name, directions,
+        create_by, create_time, update_by, update_time)
+        select #{param.projectScheduleUsageId},
+        #{param.projectId},
+        id,
+        schedule_template_name,
+        directions,
+        #{param.userName},
+        now(),
+        null,
+        null
+        from biz_project_schedule_template
+        where id = #{param.projectScheduleTemplateId},
+    </if>
+
+    </insert>
 
 </mapper>

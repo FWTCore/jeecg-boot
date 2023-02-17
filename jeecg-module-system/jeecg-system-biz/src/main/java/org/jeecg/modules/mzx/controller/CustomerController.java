@@ -9,11 +9,8 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.modules.mzx.entity.BizCustomer;
-import org.jeecg.modules.mzx.entity.BizProjectScheduleItemTemplate;
 import org.jeecg.modules.mzx.entity.UFTAAPartner;
-import org.jeecg.modules.mzx.model.CustomerSyncModel;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
-import org.jeecg.modules.system.entity.SysDepartRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -105,5 +102,19 @@ public class CustomerController {
         return result;
     }
 
+    @RequestMapping(value = "/queryall", method = RequestMethod.GET)
+    public Result<List<BizCustomer>> queryall() {
+        Result<List<BizCustomer>> result = new Result<>();
+        QueryWrapper<BizCustomer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0.toString());
+        List<BizCustomer> list = customerService.list(queryWrapper);
+        if (list == null || list.size() <= 0) {
+            result.error500("未找到客户信息");
+        } else {
+            result.setResult(list);
+            result.setSuccess(true);
+        }
+        return result;
+    }
 
 }

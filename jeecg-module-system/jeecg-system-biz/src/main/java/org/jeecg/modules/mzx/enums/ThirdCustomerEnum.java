@@ -9,7 +9,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-@EnumDict("rangeDate")
+@EnumDict("customer_data_source")
 public enum ThirdCustomerEnum {
 
     UFT(1, "T+");
