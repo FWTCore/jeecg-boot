@@ -31,9 +31,19 @@ public class BizProjectScheduleLog implements Serializable {
     private String projectId;
 
     /**
+     * 项目名称
+     */
+    private String projectName;
+
+    /**
      * 项目进度进度明细id
      */
     private String projectScheduleUsageItemId;
+
+    /**
+     * 条目名称
+     */
+    private String scheduleName;
 
     /**
      * 员工Id

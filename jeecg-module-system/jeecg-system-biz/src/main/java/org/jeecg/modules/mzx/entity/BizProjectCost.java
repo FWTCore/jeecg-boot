@@ -1,5 +1,7 @@
 package org.jeecg.modules.mzx.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,9 +20,20 @@ public class BizProjectCost implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * id
+     */
+    @TableId(type = IdType.ASSIGN_ID)
+    private String id;
+
+    /**
      * 项目id
      */
     private String projectId;
+
+    /**
+     * 项目名称
+     */
+    private String projectName;
 
     /**
      * 费用key

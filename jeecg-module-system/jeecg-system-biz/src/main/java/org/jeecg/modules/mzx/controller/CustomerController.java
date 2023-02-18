@@ -52,7 +52,6 @@ public class CustomerController {
      * @return
      * @功能：同步
      */
-    //@RequiresRoles({"admin"})
     @RequestMapping(value = "/syncuft", method = RequestMethod.PUT)
     public Result<?> syncuft(HttpServletRequest req) {
         List<UFTAAPartner> dataList = customerService.getUFTAAPartnerList(null);
@@ -64,7 +63,6 @@ public class CustomerController {
      * @return
      * @功能：新增
      */
-    //@RequiresRoles({"admin"})
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Result<BizCustomer> add(@RequestBody BizCustomer customer) {
         Result<BizCustomer> result = new Result<BizCustomer>();
@@ -76,28 +74,6 @@ public class CustomerController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             result.error500("操作失败");
-        }
-        return result;
-    }
-
-    /**
-     * @param customer
-     * @return
-     * @功能：编辑
-     */
-    //@RequiresRoles({"admin"})
-    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<BizCustomer> edit(@RequestBody BizCustomer customer) {
-        Result<BizCustomer> result = new Result<BizCustomer>();
-        BizCustomer data = customerService.getById(customer.getId());
-        if (data == null) {
-            result.error500("未找到对应实体");
-        } else {
-            customer.setUpdateTime(new Date());
-            boolean ok = customerService.updateById(customer);
-            if (ok) {
-                result.success("编辑成功!");
-            }
         }
         return result;
     }

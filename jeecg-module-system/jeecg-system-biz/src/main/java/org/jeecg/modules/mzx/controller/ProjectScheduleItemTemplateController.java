@@ -92,8 +92,13 @@ public class ProjectScheduleItemTemplateController {
         if (data == null) {
             result.error500("未找到对应实体");
         } else {
-            projectScheduleItemTemplate.setUpdateTime(new Date());
-            boolean ok = projectScheduleItemTemplateService.updateById(projectScheduleItemTemplate);
+            data.setItemName(projectScheduleItemTemplate.getItemName());
+            data.setDefaultText(projectScheduleItemTemplate.getDefaultText());
+            data.setDirections(projectScheduleItemTemplate.getDirections());
+            data.setSortOrder(projectScheduleItemTemplate.getSortOrder());
+            data.setStatus(projectScheduleItemTemplate.getStatus());
+            data.setUpdateTime(new Date());
+            boolean ok = projectScheduleItemTemplateService.updateById(data);
             if (ok) {
                 result.success("编辑成功!");
             }
