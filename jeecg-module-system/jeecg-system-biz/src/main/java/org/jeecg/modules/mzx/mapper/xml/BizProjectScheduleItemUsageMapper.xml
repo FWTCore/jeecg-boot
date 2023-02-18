@@ -9,7 +9,7 @@
             insert into biz_project_schedule_item_usage(id, project_id, project_schedule_template_id, project_schedule_usage_id,
             project_schedule_item_template_id,
             project_schedule_item_template_parent_id, item_name, default_text,
-            directions, sort_order, create_by, create_time, update_by, update_time)
+            directions, sort_order, create_by, create_time)
             select replace(uuid(), '-', ''),
             #{param.projectId},
             project_schedule_template_id,
@@ -21,9 +21,7 @@
             directions,
             sort_order,
             #{param.userName},
-            now(),
-            null,
-            null
+            now()
             from biz_project_schedule_item_template
             where project_schedule_template_id = #{param.projectScheduleTemplateId}
             and status = 1

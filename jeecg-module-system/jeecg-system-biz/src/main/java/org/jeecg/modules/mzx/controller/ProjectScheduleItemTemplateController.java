@@ -1,8 +1,11 @@
 package org.jeecg.modules.mzx.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mchange.v2.lang.ObjectUtils;
+import com.mchange.v2.lang.StringUtils;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.api.vo.Result;
@@ -44,6 +47,9 @@ public class ProjectScheduleItemTemplateController {
                                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizProjectScheduleItemTemplate>> result = new Result<IPage<BizProjectScheduleItemTemplate>>();
         QueryWrapper<BizProjectScheduleItemTemplate> queryWrapper = QueryGenerator.initQueryWrapper(projectScheduleItemTemplate, req.getParameterMap());
+        if (ObjectUtil.isNull(projectScheduleItemTemplate.getParentId())) {
+            queryWrapper.isNull("parent_id");
+        }
         queryWrapper.orderByAsc("sort_order");
         Page<BizProjectScheduleItemTemplate> page = new Page<BizProjectScheduleItemTemplate>(pageNo, pageSize);
         IPage<BizProjectScheduleItemTemplate> pageList = projectScheduleItemTemplateService.page(page, queryWrapper);
@@ -102,8 +108,8 @@ public class ProjectScheduleItemTemplateController {
      */
     //@RequiresRoles({"admin"})
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public Result<BizProjectScheduleItemTemplate> delete(@RequestParam(name = "id", required = true) String id) {
-        Result<BizProjectScheduleItemTemplate> result = new Result<BizProjectScheduleItemTemplate>();
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        Result<String> result = new Result<String>();
         BizProjectScheduleItemTemplate data = projectScheduleItemTemplateService.getById(id);
         if (data == null) {
             result.error500("未找到对应实体");
@@ -123,8 +129,8 @@ public class ProjectScheduleItemTemplateController {
      */
     //@RequiresRoles({"admin"})
     @RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
-    public Result<BizProjectScheduleItemTemplate> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
-        Result<BizProjectScheduleItemTemplate> result = new Result<BizProjectScheduleItemTemplate>();
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<String> result = new Result<String>();
         if (ids == null || "".equals(ids.trim())) {
             result.error500("参数不识别！");
         } else {

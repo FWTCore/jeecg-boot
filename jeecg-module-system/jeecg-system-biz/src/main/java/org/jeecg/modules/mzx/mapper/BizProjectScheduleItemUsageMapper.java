@@ -7,7 +7,7 @@ import org.jeecg.modules.mzx.vo.ProjectScheduleUsageDTO;
 
 public interface BizProjectScheduleItemUsageMapper extends BaseMapper<BizProjectScheduleItemUsage> {
 
-    Void CreateScheduleItemUsage(@Param("param") ProjectScheduleUsageDTO projectScheduleUsage);
+    void CreateScheduleItemUsage(@Param("param") ProjectScheduleUsageDTO projectScheduleUsage);
 
 
 

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectScheduleTemplate;
@@ -22,8 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 @Api(tags = "项目管理")
 @RestController
@@ -134,6 +135,43 @@ public class ProjectController {
         }
         return result;
     }
+
+    /**
+     * @param ids
+     * @return
+     * @功能：批量删除
+     */
+    @ApiOperation("批量删除")
+    @RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<String> result = new Result<String>();
+        if (oConvertUtils.isEmpty(ids)) {
+            result.error500("参数不识别！");
+        } else {
+            projectService.removeByIds(Arrays.asList(ids.split(",")));
+            result.success("删除成功!");
+        }
+        return result;
+    }
+
+    /**
+     * @param id
+     * @return
+     * @功能：删除
+     */
+    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        Result<String> result = new Result<String>();
+        BizProject data = projectService.getById(id);
+        if (data == null) {
+            result.error500("未找到对应实体");
+        } else {
+            projectService.removeById(id);
+            result.success("删除成功!");
+        }
+        return result;
+    }
+
 
 
 }

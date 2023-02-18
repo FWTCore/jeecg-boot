@@ -12,6 +12,7 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizProjectScheduleTemplate;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleTemplateService;
+import org.jeecg.modules.system.entity.SysUserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,8 +105,8 @@ public class ProjectScheduleTemplateController {
     @ApiOperation("批量删除")
     @RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
 //    @CacheEvict(value= {CacheConstant.SYS_DICT_CACHE, CacheConstant.SYS_ENABLE_DICT_CACHE}, allEntries=true)
-    public Result<BizProjectScheduleTemplate> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
-        Result<BizProjectScheduleTemplate> result = new Result<BizProjectScheduleTemplate>();
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<String> result = new Result<String>();
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
@@ -123,8 +124,8 @@ public class ProjectScheduleTemplateController {
     //@RequiresRoles({"admin"})
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 //    @CacheEvict(value={CacheConstant.SYS_DICT_CACHE, CacheConstant.SYS_ENABLE_DICT_CACHE}, allEntries=true)
-    public Result<BizProjectScheduleTemplate> delete(@RequestParam(name = "id", required = true) String id) {
-        Result<BizProjectScheduleTemplate> result = new Result<BizProjectScheduleTemplate>();
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        Result<String> result = new Result<String>();
         BizProjectScheduleTemplate data = projectScheduleTemplateService.getById(id);
         if (data == null) {
             result.error500("未找到对应实体");
@@ -153,6 +154,5 @@ public class ProjectScheduleTemplateController {
         }
         return result;
     }
-
 
 }
