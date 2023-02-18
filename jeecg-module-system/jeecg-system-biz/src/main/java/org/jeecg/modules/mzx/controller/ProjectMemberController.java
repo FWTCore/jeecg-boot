@@ -10,8 +10,11 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizProjectMember;
 import org.jeecg.modules.mzx.service.IBizProjectMemberService;
+import org.jeecg.modules.system.entity.SysUser;
+import org.jeecg.modules.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +30,8 @@ public class ProjectMemberController {
 
     @Autowired
     private IBizProjectMemberService projectMemberService;
-
+    @Autowired
+    private ISysUserService sysUserService;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -51,6 +55,11 @@ public class ProjectMemberController {
     public Result<BizProjectMember> add(@RequestBody BizProjectMember projectMember) {
         Result<BizProjectMember> result = new Result<BizProjectMember>();
         try {
+            SysUser sysUserEntity = sysUserService.getById(projectMember.getStaffId());
+            if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+                result.error500("员工不存在");
+            }
+            projectMember.setStaff(sysUserEntity.getRealname());
             projectMember.setCreateTime(new Date());
             projectMember.setDelFlag(CommonConstant.DEL_FLAG_0);
             projectMemberService.save(projectMember);

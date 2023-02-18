@@ -8,12 +8,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class BizProjectMember implements Serializable {
+public class BizCustomerServiceLog implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -24,9 +25,14 @@ public class BizProjectMember implements Serializable {
     private String id;
 
     /**
-     * 项目id
+     * 客户Id
      */
-    private String projectId;
+    private String customerId;
+
+    /**
+     * 客户名称
+     */
+    private String customerName;
 
     /**
      * 员工Id
@@ -37,6 +43,26 @@ public class BizProjectMember implements Serializable {
      * 员工
      */
     private String staff;
+
+    /**
+     * 服务内容
+     */
+    private String serviceContent;
+
+    /**
+     * 工时
+     */
+    private BigDecimal workHours;
+
+    /**
+     * 下一步计划时间
+     */
+    private Date nextPlanTime;
+
+    /**
+     * 下一步计划内容
+     */
+    private String nextPlanContent;
 
     /**
      * 删除状态
@@ -63,4 +89,5 @@ public class BizProjectMember implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
 }
