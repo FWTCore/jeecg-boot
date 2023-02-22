@@ -1,5 +1,7 @@
 package org.jeecg.modules.mzx.controller;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -23,6 +25,8 @@ import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.jeecg.modules.mzx.vo.CostModel;
 import org.jeecg.modules.mzx.vo.ProjectCostModel;
+import org.jeecg.modules.mzx.vo.ProjectCostQuery;
+import org.jeecg.modules.system.entity.SysDepart;
 import org.jeecg.modules.system.entity.SysUserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +37,7 @@ import java.util.stream.Collectors;
 
 @Api(tags = "项目费用")
 @RestController
-@RequestMapping("/project/Cost")
+@RequestMapping("/project/cost")
 @Slf4j
 public class ProjectCostController {
 
@@ -44,14 +48,55 @@ public class ProjectCostController {
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public Result<IPage<BizProjectCost>> queryPageList(BizProjectCost projectCost, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
-        Result<IPage<BizProjectCost>> result = new Result<IPage<BizProjectCost>>();
-        QueryWrapper<BizProjectCost> queryWrapper = QueryGenerator.initQueryWrapper(projectCost, req.getParameterMap());
+    public Result<IPage<JSONObject>> queryPageList(ProjectCostQuery projectCost, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
+        Result<IPage<JSONObject>> result = new Result<IPage<JSONObject>>();
+        QueryWrapper<BizProjectCost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
+        if (ObjectUtil.isNotNull(projectCost.getProjectName())) {
+            queryWrapper.like("project_name", projectCost.getProjectName());
+        }
+        if (ObjectUtil.isNotNull(projectCost.getStaff())) {
+            queryWrapper.like("staff", projectCost.getStaff());
+        }
+        queryWrapper.select("distinct project_id as projectId, staff_id as staffId, date_format(create_time,'%Y-%m-%d') as createTime").orderByDesc("create_time");
         Page<BizProjectCost> page = new Page<BizProjectCost>(pageNo, pageSize);
         IPage<BizProjectCost> pageList = projectCostService.page(page, queryWrapper);
+
+        IPage<JSONObject> resultList = new Page<>();
+        resultList.setPages(pageList.getPages());
+        resultList.setSize(pageList.getSize());
+        resultList.setTotal(pageList.getTotal());
+        resultList.setRecords(new ArrayList<>());
+        if (CollectionUtils.isNotEmpty(pageList.getRecords()) && pageList.getRecords().size() > 0) {
+            for (BizProjectCost data : pageList.getRecords()) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
+                queryWrapper.in("project_id", data.getProjectId());
+                queryWrapper.in("staff_id", data.getStaffId());
+                queryWrapper.ge("create_time", data.getCreateTime());
+                Calendar endtime = Calendar.getInstance();
+                endtime.setTime(data.getCreateTime());
+                endtime.add(Calendar.DAY_OF_MONTH, 1);
+                queryWrapper.le("create_time", endtime.getTime());
+                List<BizProjectCost> dataList = projectCostService.list(queryWrapper);
+                JSONObject json = new JSONObject();
+                json.put("id", String.format("%s_%s_%s", data.getProjectId(), data.getProjectId(), data.getCreateTime().getTime()));
+                json.put("projectId", data.getProjectId());
+                json.put("projectName", dataList.stream().findFirst().get().getProjectName());
+                json.put("staffId", data.getProjectId());
+                json.put("staff", dataList.stream().findFirst().get().getStaff());
+                json.put("createTime", data.getCreateTime());
+                for (BizProjectCost item : dataList) {
+                    json.put(item.getCostKey(), item.getCostValue());
+                    json.put(String.format("%s_remark", item.getCostKey()), item.getCostRemark());
+                }
+                resultList.getRecords().add(json);
+            }
+
+        }
         result.setSuccess(true);
-        result.setResult(pageList);
+        result.setResult(resultList);
         return result;
     }
 

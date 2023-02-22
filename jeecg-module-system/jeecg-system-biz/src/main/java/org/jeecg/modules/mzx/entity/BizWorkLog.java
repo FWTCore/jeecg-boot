@@ -37,7 +37,7 @@ public class BizWorkLog implements Serializable {
     /**
      * 服务内容
      */
-    private String workContent;
+    private String serviceContent;
 
     /**
      * 工时

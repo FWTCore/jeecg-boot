@@ -79,7 +79,7 @@ public class BizProjectScheduleLog implements Serializable {
     /**
      * 加班时长
      */
-    private BigDecimal overTime;
+    private BigDecimal overtime;
 
     /**
      * 是否完成，0否，1是

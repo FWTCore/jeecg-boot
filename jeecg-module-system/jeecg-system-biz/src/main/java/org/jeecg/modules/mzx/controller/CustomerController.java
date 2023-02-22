@@ -78,6 +78,28 @@ public class CustomerController {
         return result;
     }
 
+    /**
+     * @param customer
+     * @return
+     * @功能：编辑
+     */
+    //@RequiresRoles({"admin"})
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<BizCustomer> edit(@RequestBody BizCustomer customer) {
+        Result<BizCustomer> result = new Result<BizCustomer>();
+        BizCustomer data = customerService.getById(customer.getId());
+        if (data == null) {
+            result.error500("未找到对应实体");
+        } else {
+            customer.setUpdateTime(new Date());
+            boolean ok = customerService.updateById(customer);
+            if (ok) {
+                result.success("编辑成功!");
+            }
+        }
+        return result;
+    }
+
     @RequestMapping(value = "/queryall", method = RequestMethod.GET)
     public Result<List<BizCustomer>> queryall() {
         Result<List<BizCustomer>> result = new Result<>();

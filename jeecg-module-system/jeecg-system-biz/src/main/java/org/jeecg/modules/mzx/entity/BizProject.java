@@ -48,8 +48,7 @@ public class BizProject implements Serializable {
     /**
      * 付款方式
      */
-    @Dict(dicCode = "project_payment_method")
-    private Integer paymentMethod;
+    private String paymentMethod;
 
     /**
      * 签单人id

@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectScheduleItemUsageMapper">
 
-
     <insert id="CreateScheduleItemUsage"  parameterType="org.jeecg.modules.mzx.vo.ProjectScheduleUsageDTO">
         <if test="param!=null and param.projectId!=null
         and param.projectScheduleTemplateId!=null and param.projectScheduleUsageId!=null">
@@ -28,4 +27,54 @@
             and del_flag = 0
         </if>
     </insert>
+    <select id="queryUsageSchedule" resultType="org.jeecg.modules.mzx.vo.ProjectScheduleVO">
+        select if(child.id is null,parent.id, child.id) as id,
+               if(child.id is null,parent.item_name, concat(parent.item_name, ' / ', child.item_name)) as scheduleName,
+               if(child.id is null,parent.default_text, child.default_text) as defaultText,
+               if(child.id is null,parent.directions, child.directions) as directions,
+               if(child.id is null,parent.sort_order * 10, parent.sort_order * 10 + child.sort_order) as sortOrder
+        from (
+                 select id,
+                        project_schedule_item_template_id,
+                        project_schedule_item_template_parent_id,
+                        item_name,
+                        default_text,
+                        directions,
+                        sort_order
+                 from biz_project_schedule_item_usage item
+                 where project_id = #{projectId}
+                   and project_schedule_item_template_parent_id is null
+                   and not exists(
+                         select 1
+                         from biz_project_schedule_log as log
+                         where item.id = log.project_schedule_usage_item_id
+                           and log.done_flag = 1
+                           and log.project_id = #{projectId}
+                     )
+             ) parent
+                 left join (
+            select id,
+                   project_schedule_item_template_id,
+                   project_schedule_item_template_parent_id,
+                   item_name,
+                   default_text,
+                   directions,
+                   sort_order
+            from biz_project_schedule_item_usage item
+            where project_id = #{projectId}
+              and project_schedule_item_template_parent_id is not null
+              and not exists(
+                    select 1
+                    from biz_project_schedule_log as log
+                    where item.id = log.project_schedule_usage_item_id
+                      and log.done_flag = 1
+                      and log.project_id = #{projectId}
+                )
+        ) child
+                           on child.project_schedule_item_template_parent_id = parent.project_schedule_item_template_id
+        order by sortOrder
+
+    </select>
+
+
 </mapper>

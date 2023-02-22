@@ -45,7 +45,7 @@ public class ProjectVO implements Serializable {
     /**
      * 付款方式
      */
-    private Integer paymentMethod;
+    private String paymentMethod;
 
     /**
      * 签单人id

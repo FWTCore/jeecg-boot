@@ -4,7 +4,6 @@ package org.jeecg.modules.mzx.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mchange.v2.lang.StringUtils;
 import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,12 +19,14 @@ import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleLogService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 
 @Api(tags = "项目进度管理")
@@ -127,7 +128,7 @@ public class ProjectScheduleController {
                 data.setServiceContent(projectScheduleLog.getServiceContent());
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());
-                data.setOverTime(projectScheduleLog.getOverTime());
+                data.setOvertime(projectScheduleLog.getOvertime());
                 data.setDoneFlag(projectScheduleLog.getDoneFlag());
                 data.setArchiveFlag(projectScheduleLog.getArchiveFlag());
                 data.setNextPlanContent(projectScheduleLog.getNextPlanContent());
@@ -176,5 +177,17 @@ public class ProjectScheduleController {
         return result;
     }
 
+    @RequestMapping(value = "/queryusageschedule", method = RequestMethod.GET)
+    public Result<List<ProjectScheduleVO>> queryUsageSchedule(@RequestParam(name = "projectId", required = true) String projectId) {
+        Result<List<ProjectScheduleVO>> result = new Result<>();
+        List<ProjectScheduleVO> list = projectScheduleItemUsageService.queryUsageSchedule(projectId);
+        if (list == null || list.size() <= 0) {
+            result.error500("未找到项目进度数据");
+        } else {
+            result.setResult(list);
+            result.setSuccess(true);
+        }
+        return result;
+    }
 
 }

@@ -11,8 +11,11 @@ import org.jeecg.modules.mzx.entity.BizProjectScheduleItemUsage;
 import org.jeecg.modules.mzx.mapper.BizProjectScheduleItemUsageMapper;
 import org.jeecg.modules.mzx.mapper.BizProjectScheduleLogMapper;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
+import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -36,7 +39,14 @@ public class BizProjectScheduleItemUsageService extends ServiceImpl<BizProjectSc
             queryWrapper.eq("project_schedule_template_id", entity.getProjectScheduleTemplateId());
             queryWrapper.eq("project_schedule_usage_id", entity.getProjectScheduleUsageId());
             BizProjectScheduleItemUsage parentEntity = this.getOne(queryWrapper);
-            return String.format("%s-%s", parentEntity.getItemName(), entity.getItemName());
+            return String.format("%s / %s", parentEntity.getItemName(), entity.getItemName());
         }
     }
+
+    @Override
+    public List<ProjectScheduleVO> queryUsageSchedule(String projectId) {
+        return projectScheduleItemUsageMapper.queryUsageSchedule(projectId);
+    }
+
+
 }

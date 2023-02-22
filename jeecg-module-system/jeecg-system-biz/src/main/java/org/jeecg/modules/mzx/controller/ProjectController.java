@@ -16,6 +16,7 @@ import org.jeecg.modules.mzx.entity.BizProjectScheduleTemplate;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleTemplateService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.jeecg.modules.mzx.vo.ProjectVO;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 @Api(tags = "项目管理")
 @RestController
@@ -171,6 +173,22 @@ public class ProjectController {
         }
         return result;
     }
+
+    @RequestMapping(value = "/queryall", method = RequestMethod.GET)
+    public Result<List<BizProject>> queryall() {
+        Result<List<BizProject>> result = new Result<>();
+        QueryWrapper<BizProject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0.toString());
+        List<BizProject> list = projectService.list(queryWrapper);
+        if (list == null || list.size() <= 0) {
+            result.error500("未找到项目信息");
+        } else {
+            result.setResult(list);
+            result.setSuccess(true);
+        }
+        return result;
+    }
+
 
 
 

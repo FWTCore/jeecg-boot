@@ -12,11 +12,7 @@ import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
-import org.jeecg.modules.mzx.entity.BizCustomer;
-import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizWorkLog;
-import org.jeecg.modules.mzx.service.IBizCustomerService;
-import org.jeecg.modules.mzx.service.IBizCustomerServiceLogService;
 import org.jeecg.modules.mzx.service.IBizWorkLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -84,7 +80,7 @@ public class WorkLogController {
         if (data == null || data.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
             result.error500("未找到对应实体");
         } else {
-            data.setWorkContent(workLog.getWorkContent());
+            data.setServiceContent(workLog.getServiceContent());
             data.setWorkHours(workLog.getWorkHours());
             data.setNextPlanContent(workLog.getNextPlanContent());
             data.setNextPlanTime(workLog.getNextPlanTime());
