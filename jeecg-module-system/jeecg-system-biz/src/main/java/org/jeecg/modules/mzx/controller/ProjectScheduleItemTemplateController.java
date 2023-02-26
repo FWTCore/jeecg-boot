@@ -46,11 +46,12 @@ public class ProjectScheduleItemTemplateController {
     public Result<IPage<BizProjectScheduleItemTemplate>> queryPageList(BizProjectScheduleItemTemplate projectScheduleItemTemplate, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizProjectScheduleItemTemplate>> result = new Result<IPage<BizProjectScheduleItemTemplate>>();
+        req.getParameterMap().get("column")[0]="sortOrder";
+        req.getParameterMap().get("order")[0]="ASC";
         QueryWrapper<BizProjectScheduleItemTemplate> queryWrapper = QueryGenerator.initQueryWrapper(projectScheduleItemTemplate, req.getParameterMap());
         if (ObjectUtil.isNull(projectScheduleItemTemplate.getParentId())) {
             queryWrapper.isNull("parent_id");
         }
-        queryWrapper.orderByAsc("sort_order");
         Page<BizProjectScheduleItemTemplate> page = new Page<BizProjectScheduleItemTemplate>(pageNo, pageSize);
         IPage<BizProjectScheduleItemTemplate> pageList = projectScheduleItemTemplateService.page(page, queryWrapper);
         result.setSuccess(true);

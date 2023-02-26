@@ -1,6 +1,8 @@
 package org.jeecg.modules.mzx.controller;
 
 
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,12 +21,14 @@ import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleLogService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.vo.ProjectScheduleQuery;
 import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -61,10 +65,47 @@ public class ProjectScheduleController {
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/scheduleLoglist", method = RequestMethod.GET)
-    public Result<IPage<BizProjectScheduleLog>> scheduleLoglist(BizProjectScheduleLog serviceLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+    public Result<IPage<BizProjectScheduleLog>> scheduleLoglist(ProjectScheduleQuery serviceLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizProjectScheduleLog>> result = new Result<IPage<BizProjectScheduleLog>>();
-        QueryWrapper<BizProjectScheduleLog> queryWrapper = QueryGenerator.initQueryWrapper(serviceLog, req.getParameterMap());
+        LambdaQueryWrapper<BizProjectScheduleLog> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BizProjectScheduleLog::getDelFlag, CommonConstant.DEL_FLAG_0);
+        if (ObjectUtil.isNotNull(serviceLog.getProjectName())) {
+            queryWrapper.like(BizProjectScheduleLog::getProjectName, serviceLog.getProjectName());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getScheduleName())) {
+            queryWrapper.like(BizProjectScheduleLog::getScheduleName, serviceLog.getScheduleName());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
+            queryWrapper.like(BizProjectScheduleLog::getStaff, serviceLog.getStaff());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
+            queryWrapper.like(BizProjectScheduleLog::getStaff, serviceLog.getStaff());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getBeginDate())) {
+            queryWrapper.ge(BizProjectScheduleLog::getCreateTime, serviceLog.getBeginDate());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getEndDate())) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(serviceLog.getEndDate());
+            queryWrapper.lt(BizProjectScheduleLog::getCreateTime, cal.getTime());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getServiceType())) {
+            queryWrapper.eq(BizProjectScheduleLog::getServiceType, serviceLog.getServiceType());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getServiceContent())) {
+            queryWrapper.like(BizProjectScheduleLog::getServiceContent, serviceLog.getServiceContent());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getOvertimeFlag())) {
+            queryWrapper.eq(BizProjectScheduleLog::getOvertimeFlag, serviceLog.getOvertimeFlag());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getDoneFlag())) {
+            queryWrapper.eq(BizProjectScheduleLog::getDoneFlag, serviceLog.getDoneFlag());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getArchiveFlag())) {
+            queryWrapper.eq(BizProjectScheduleLog::getArchiveFlag, serviceLog.getArchiveFlag());
+        }
+
         Page<BizProjectScheduleLog> page = new Page<BizProjectScheduleLog>(pageNo, pageSize);
         IPage<BizProjectScheduleLog> pageList = projectScheduleLogService.page(page, queryWrapper);
         result.setSuccess(true);
@@ -94,6 +135,9 @@ public class ProjectScheduleController {
                     LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
                     projectScheduleLog.setStaffId(sysUser.getId());
                     projectScheduleLog.setStaff(sysUser.getRealname());
+                    if (ObjectUtil.isNull(projectScheduleLog.getOvertimeFlag()) || projectScheduleLog.getOvertimeFlag() != 1) {
+                        projectScheduleLog.setOvertime(null);
+                    }
                     projectScheduleLog.setCreateTime(new Date());
                     projectScheduleLog.setDelFlag(CommonConstant.DEL_FLAG_0);
                     projectScheduleLogService.save(projectScheduleLog);
@@ -128,7 +172,11 @@ public class ProjectScheduleController {
                 data.setServiceContent(projectScheduleLog.getServiceContent());
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());
-                data.setOvertime(projectScheduleLog.getOvertime());
+                if (ObjectUtil.isNull(projectScheduleLog.getOvertimeFlag()) || projectScheduleLog.getOvertimeFlag() != 1) {
+                    data.setOvertime(null);
+                } else {
+                    data.setOvertime(projectScheduleLog.getOvertime());
+                }
                 data.setDoneFlag(projectScheduleLog.getDoneFlag());
                 data.setArchiveFlag(projectScheduleLog.getArchiveFlag());
                 data.setNextPlanContent(projectScheduleLog.getNextPlanContent());

@@ -8,13 +8,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class ProjectCostQuery implements Serializable {
+public class WorkLogQuery implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 项目名称
-     */
-    private String projectName;
     /**
      * 服务人
      */
@@ -27,7 +23,6 @@ public class ProjectCostQuery implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date beginDate;
 
-
     /**
      * 结束时间
      */
@@ -35,4 +30,8 @@ public class ProjectCostQuery implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date endDate;
 
+    /**
+     * 服务内容
+     */
+    private String serviceContent;
 }

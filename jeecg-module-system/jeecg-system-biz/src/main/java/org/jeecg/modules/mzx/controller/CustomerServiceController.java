@@ -1,6 +1,7 @@
 package org.jeecg.modules.mzx.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
@@ -9,19 +10,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
-import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
-import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.jeecg.modules.mzx.service.IBizCustomerServiceLogService;
+import org.jeecg.modules.mzx.vo.CustomerServiceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 
 @Api(tags = "客户服务")
@@ -39,10 +40,28 @@ public class CustomerServiceController {
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public Result<IPage<BizCustomerServiceLog>> queryPageList(BizCustomerServiceLog serviceLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+    public Result<IPage<BizCustomerServiceLog>> queryPageList(CustomerServiceQuery serviceLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizCustomerServiceLog>> result = new Result<IPage<BizCustomerServiceLog>>();
-        QueryWrapper<BizCustomerServiceLog> queryWrapper = QueryGenerator.initQueryWrapper(serviceLog, req.getParameterMap());
+        LambdaQueryWrapper<BizCustomerServiceLog> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BizCustomerServiceLog::getDelFlag, CommonConstant.DEL_FLAG_0);
+        if (ObjectUtil.isNotNull(serviceLog.getCustomerName())) {
+            queryWrapper.like(BizCustomerServiceLog::getCustomerName, serviceLog.getCustomerName());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
+            queryWrapper.like(BizCustomerServiceLog::getStaff, serviceLog.getStaff());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getServiceContent())) {
+            queryWrapper.like(BizCustomerServiceLog::getServiceContent, serviceLog.getServiceContent());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getBeginDate())) {
+            queryWrapper.ge(BizCustomerServiceLog::getCreateTime, serviceLog.getBeginDate());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getEndDate())) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(serviceLog.getEndDate());
+            queryWrapper.lt(BizCustomerServiceLog::getCreateTime, cal.getTime());
+        }
         Page<BizCustomerServiceLog> page = new Page<BizCustomerServiceLog>(pageNo, pageSize);
         IPage<BizCustomerServiceLog> pageList = serviceLogService.page(page, queryWrapper);
         result.setSuccess(true);

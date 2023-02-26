@@ -8,17 +8,23 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class ProjectCostQuery implements Serializable {
+public class CustomerServiceQuery implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 项目名称
+     * 客户名称
      */
-    private String projectName;
+    private String customerName;
+
     /**
-     * 服务人
+     * 员工
      */
     private String staff;
+
+    /**
+     * 服务内容
+     */
+    private String serviceContent;
 
     /**
      * 开始时间

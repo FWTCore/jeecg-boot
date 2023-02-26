@@ -33,7 +33,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
 
     public JwtFilter(){}
     public JwtFilter(boolean allowOrigin){
-        this.allowOrigin = allowOrigin;
+        //this.allowOrigin = allowOrigin;
     }
 
     /**

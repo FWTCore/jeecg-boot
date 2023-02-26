@@ -1,5 +1,7 @@
 package org.jeecg.modules.mzx.controller;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -12,13 +14,16 @@ import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizWorkLog;
 import org.jeecg.modules.mzx.service.IBizWorkLogService;
+import org.jeecg.modules.mzx.vo.WorkLogQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 
 
@@ -34,10 +39,25 @@ public class WorkLogController {
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public Result<IPage<BizWorkLog>> queryPageList(BizWorkLog workLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+    public Result<IPage<BizWorkLog>> queryPageList(WorkLogQuery workLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizWorkLog>> result = new Result<IPage<BizWorkLog>>();
-        QueryWrapper<BizWorkLog> queryWrapper = QueryGenerator.initQueryWrapper(workLog, req.getParameterMap());
+        LambdaQueryWrapper<BizWorkLog> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BizWorkLog::getDelFlag, CommonConstant.DEL_FLAG_0);
+        if (ObjectUtil.isNotNull(workLog.getStaff())) {
+            queryWrapper.like(BizWorkLog::getStaff, workLog.getStaff());
+        }
+        if (ObjectUtil.isNotNull(workLog.getServiceContent())) {
+            queryWrapper.like(BizWorkLog::getServiceContent, workLog.getServiceContent());
+        }
+        if (ObjectUtil.isNotNull(workLog.getBeginDate())) {
+            queryWrapper.ge(BizWorkLog::getCreateTime, workLog.getBeginDate());
+        }
+        if (ObjectUtil.isNotNull(workLog.getEndDate())) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(workLog.getEndDate());
+            queryWrapper.lt(BizWorkLog::getCreateTime, cal.getTime());
+        }
         Page<BizWorkLog> page = new Page<BizWorkLog>(pageNo, pageSize);
         IPage<BizWorkLog> pageList = workLogService.page(page, queryWrapper);
         result.setSuccess(true);

@@ -5,35 +5,32 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
-import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.exception.JeecgBootException;
+import org.jeecg.common.system.vo.DictModel;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
-import org.jeecg.modules.message.enums.RangeDateEnum;
-import org.jeecg.modules.mzx.entity.BizCustomer;
-import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectCost;
-import org.jeecg.modules.mzx.service.IBizCustomerServiceLogService;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
-import org.jeecg.modules.mzx.vo.CostModel;
-import org.jeecg.modules.mzx.vo.ProjectCostModel;
 import org.jeecg.modules.mzx.vo.ProjectCostQuery;
-import org.jeecg.modules.system.entity.SysDepart;
-import org.jeecg.modules.system.entity.SysUserRole;
+import org.jeecg.modules.system.service.ISysDictService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Api(tags = "项目费用")
 @RestController
@@ -45,6 +42,9 @@ public class ProjectCostController {
     private IBizProjectService projectService;
     @Autowired
     private IBizProjectCostService projectCostService;
+    @Autowired
+    private ISysDictService sysDictService;
+
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -78,17 +78,17 @@ public class ProjectCostController {
                 Calendar endtime = Calendar.getInstance();
                 endtime.setTime(data.getCreateTime());
                 endtime.add(Calendar.DAY_OF_MONTH, 1);
-                queryWrapper.le("create_time", endtime.getTime());
+                queryWrapper.lt("create_time", endtime.getTime());
                 List<BizProjectCost> dataList = projectCostService.list(queryWrapper);
                 JSONObject json = new JSONObject();
                 json.put("id", String.format("%s_%s_%s", data.getProjectId(), data.getProjectId(), data.getCreateTime().getTime()));
                 json.put("projectId", data.getProjectId());
                 json.put("projectName", dataList.stream().findFirst().get().getProjectName());
-                json.put("staffId", data.getProjectId());
+                json.put("staffId", data.getStaffId());
                 json.put("staff", dataList.stream().findFirst().get().getStaff());
                 json.put("createTime", data.getCreateTime());
                 for (BizProjectCost item : dataList) {
-                    json.put(item.getCostKey(), item.getCostValue());
+                    json.put(String.format("%s_cost", item.getCostKey()), item.getCostValue());
                     json.put(String.format("%s_remark", item.getCostKey()), item.getCostRemark());
                 }
                 resultList.getRecords().add(json);
@@ -106,52 +106,110 @@ public class ProjectCostController {
      * @功能：
      */
     @RequestMapping(value = "/addOrEdit", method = RequestMethod.POST)
-    public Result<Boolean> addOrEdit(@RequestBody ProjectCostModel projectCost) {
+    public Result<Boolean> addOrEdit(@RequestBody JSONObject json) {
         Result<Boolean> result = new Result<Boolean>();
         try {
-            BizProject project = projectService.getById(projectCost.getProjectId());
-            if (project == null || project.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("未找到对应实体");
+            if (json == null) {
+                result.error500("参数错误");
             } else {
-                LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-                // 获取当前登录人该项目今天录入有效的花费
-                QueryWrapper<BizProjectCost> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("project_id", project.getId());
-                queryWrapper.eq("staff_id", sysUser.getId());
-                queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
-                //时间
-                Date[] dates = RangeDateEnum.getRangeArray(RangeDateEnum.JT.getKey());
-                queryWrapper.ge("begin_date", dates[0]);
-                queryWrapper.le("end_date", dates[1]);
-                List<BizProjectCost> todayExistCost = projectCostService.list(queryWrapper);
-                List<BizProjectCost> saveDataList = new ArrayList<>();
-                List<BizProjectCost> updateDataList = new ArrayList<>();
-
-                for (CostModel cost : projectCost.getCostModels()) {
-                    BizProjectCost tempData = new BizProjectCost();
-                    // 确保一个类型的花费只有要给值
-                    if (!CollectionUtils.isEmpty(todayExistCost) && todayExistCost.size() > 0
-                            && todayExistCost.stream().filter(e -> e.getCostKey().equals(cost.getCostKey())).count() == 1) {
-                        tempData = todayExistCost.stream().filter(e -> e.getCostKey().equals(cost.getCostKey())).findFirst().get();
-                        tempData.setCostValue(cost.getCostValue());
-                        tempData.setCostRemark(cost.getCostRemark());
-                        tempData.setUpdateTime(new Date());
-                        updateDataList.add(tempData);
-                    } else {
-                        tempData.setProjectId(project.getId());
-                        tempData.setProjectName(project.getProjectName());
-                        tempData.setCostKey(cost.getCostKey());
-                        tempData.setCostValue(cost.getCostValue());
-                        tempData.setCostRemark(cost.getCostRemark());
-                        tempData.setStaffId(sysUser.getId());
-                        tempData.setStaff(sysUser.getRealname());
-                        tempData.setDelFlag(CommonConstant.DEL_FLAG_0);
-                        saveDataList.add(tempData);
-                    }
+                String id = "";
+                if (json.containsKey("id")) {
+                    id = json.getString("id").trim();
                 }
-                projectCostService.saveBatch(saveDataList);
-                projectCostService.updateBatchById(updateDataList);
-                result.success("保存成功！");
+                String projectId = json.getString("projectId").trim();
+                String staffId = "";
+                if (json.containsKey("staffId")) {
+                    staffId = json.getString("staffId").trim();
+                }
+                String staff = "";
+                if (json.containsKey("staff")) {
+                    staff = json.getString("staff").trim();
+                }
+                Calendar time = Calendar.getInstance();
+                // 有id，必须有服务人
+                if (!StringUtil.isNullOrEmpty(id)) {
+                    if (StringUtil.isNullOrEmpty(staffId) || StringUtil.isNullOrEmpty(staff)) {
+                        throw new JeecgBootException("请注意，服务人未确定");
+                    }
+                    // 获取创建时间
+                    String createTimeStr = json.getString("createTime").trim();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                    Date createTime = formatter.parse(createTimeStr);
+                    time.setTime(createTime);
+                } else {
+                    // 无id，是为新增，默认未当前登录人
+                    LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                    staffId = sysUser.getId();
+                    staff = sysUser.getRealname();
+                }
+                // 设置创建时间的时分秒为0
+                time.set(Calendar.HOUR, 0);
+                time.set(Calendar.MINUTE, 0);
+                time.set(Calendar.SECOND, 0);
+                time.set(Calendar.MILLISECOND, 0);
+
+                BizProject project = projectService.getById(projectId);
+                if (project == null || project.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+                    throw new JeecgBootException("请注意，未找到对应实体");
+                } else {
+                    // 获取当前登录人该项目 指定时间录入有效的花费
+                    QueryWrapper<BizProjectCost> queryWrapper = new QueryWrapper<>();
+                    queryWrapper.eq("project_id", project.getId());
+                    queryWrapper.eq("staff_id", staffId);
+                    queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
+                    queryWrapper.ge("create_time", time.getTime());
+                    time.add(Calendar.DAY_OF_MONTH, 1);
+                    queryWrapper.lt("create_time", time.getTime());
+                    List<BizProjectCost> existCost = projectCostService.list(queryWrapper);
+                    // 获取字典配置
+                    List<DictModel> costList = sysDictService.queryDictItemsByCode("project_cost_key");
+                    if (CollectionUtils.isEmpty(costList) || costList.size() == 0) {
+                        throw new JeecgBootException("请注意，未配置费用类型");
+                    }
+                    List<BizProjectCost> saveDataList = new ArrayList<>();
+                    List<BizProjectCost> updateDataList = new ArrayList<>();
+                    for (DictModel cost : costList) {
+                        String costValueStr = "0";
+                        // 未设置，不处理
+                        if (json.containsKey(String.format("%s_cost", cost.getValue()))) {
+                            costValueStr = json.getString(String.format("%s_cost", cost.getValue())).trim();
+                        } else {
+                            continue;
+                        }
+                        // 花费值
+                        BigDecimal costValue = new BigDecimal("0");
+                        if(!StringUtil.isNullOrEmpty(costValueStr)){
+                            costValue = new BigDecimal(costValueStr);
+                        }
+                        String costRemark = "";
+                        if (json.containsKey(String.format("%s_remark", cost.getValue()))) {
+                            costRemark = json.getString(String.format("%s_remark", cost.getValue())).trim();
+                        }
+                        BizProjectCost tempData = new BizProjectCost();
+                        // 确保一个类型的花费只有要给值
+                        if (!CollectionUtils.isEmpty(existCost) && existCost.size() > 0
+                                && existCost.stream().filter(e -> e.getCostKey().equals(cost.getValue())).count() == 1) {
+                            tempData = existCost.stream().filter(e -> e.getCostKey().equals(cost.getValue())).findFirst().get();
+                            tempData.setCostValue(costValue);
+                            tempData.setCostRemark(costRemark);
+                            tempData.setUpdateTime(new Date());
+                            updateDataList.add(tempData);
+                        } else {
+                            tempData.setProjectId(project.getId());
+                            tempData.setProjectName(project.getProjectName());
+                            tempData.setCostKey(cost.getValue());
+                            tempData.setCostValue(costValue);
+                            tempData.setCostRemark(costRemark);
+                            tempData.setStaffId(staffId);
+                            tempData.setStaff(staff);
+                            tempData.setDelFlag(CommonConstant.DEL_FLAG_0);
+                            saveDataList.add(tempData);
+                        }
+                    }
+                    projectCostService.saveBatch(saveDataList);
+                    projectCostService.updateBatchById(updateDataList);
+                    result.success("保存成功！");
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
