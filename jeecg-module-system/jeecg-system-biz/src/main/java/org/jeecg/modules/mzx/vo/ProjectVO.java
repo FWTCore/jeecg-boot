@@ -1,7 +1,9 @@
 package org.jeecg.modules.mzx.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.jeecg.common.aspect.annotation.Dict;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -67,16 +69,32 @@ public class ProjectVO implements Serializable {
     /**
      * 预计结束时间
      */
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date estimatedEndTime;
     /**
      * 结束时间
      */
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date endTime;
 
     /**
      * commission_ratio
      */
     private BigDecimal commissionRatio;
+    /**
+     * sale_commission_ratio
+     */
+    private BigDecimal saleCommissionRatio;
+    /**
+     * implement_commission_ratio
+     */
+    private BigDecimal implementCommissionRatio;
+    /**
+     * 信息来源
+     */
+    private BigDecimal source;
     /**
      * 项目概况
      */
@@ -85,5 +103,13 @@ public class ProjectVO implements Serializable {
      * 项目状态
      */
     private String projectStatus;
+    /**
+     * 综合费用
+     */
+    private BigDecimal comprehensiveCost;
+    /**
+     * 综合费用备注
+     */
+    private String comprehensiveRemark;
 
 }

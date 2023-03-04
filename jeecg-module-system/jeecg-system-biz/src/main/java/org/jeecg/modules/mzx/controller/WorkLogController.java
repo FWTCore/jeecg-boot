@@ -42,6 +42,8 @@ public class WorkLogController {
     public Result<IPage<BizWorkLog>> queryPageList(WorkLogQuery workLog, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizWorkLog>> result = new Result<IPage<BizWorkLog>>();
+        req.getParameterMap().get("column")[0]="createTime";
+        req.getParameterMap().get("order")[0]="DESC";
         LambdaQueryWrapper<BizWorkLog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BizWorkLog::getDelFlag, CommonConstant.DEL_FLAG_0);
         if (ObjectUtil.isNotNull(workLog.getStaff())) {
@@ -56,8 +58,10 @@ public class WorkLogController {
         if (ObjectUtil.isNotNull(workLog.getEndDate())) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(workLog.getEndDate());
+            cal.add(Calendar.DAY_OF_MONTH, 1);
             queryWrapper.lt(BizWorkLog::getCreateTime, cal.getTime());
         }
+        queryWrapper.orderByDesc(BizWorkLog::getCreateTime);
         Page<BizWorkLog> page = new Page<BizWorkLog>(pageNo, pageSize);
         IPage<BizWorkLog> pageList = workLogService.page(page, queryWrapper);
         result.setSuccess(true);

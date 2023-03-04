@@ -88,6 +88,7 @@ public class ProjectScheduleController {
         if (ObjectUtil.isNotNull(serviceLog.getEndDate())) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(serviceLog.getEndDate());
+            cal.add(Calendar.DAY_OF_MONTH, 1);
             queryWrapper.lt(BizProjectScheduleLog::getCreateTime, cal.getTime());
         }
         if (ObjectUtil.isNotNull(serviceLog.getServiceType())) {
@@ -105,7 +106,7 @@ public class ProjectScheduleController {
         if (ObjectUtil.isNotNull(serviceLog.getArchiveFlag())) {
             queryWrapper.eq(BizProjectScheduleLog::getArchiveFlag, serviceLog.getArchiveFlag());
         }
-
+        queryWrapper.orderByDesc(BizProjectScheduleLog::getCreateTime);
         Page<BizProjectScheduleLog> page = new Page<BizProjectScheduleLog>(pageNo, pageSize);
         IPage<BizProjectScheduleLog> pageList = projectScheduleLogService.page(page, queryWrapper);
         result.setSuccess(true);

@@ -91,6 +91,28 @@ public class BizProject implements Serializable {
     private String projectStatus;
 
     /**
+     * comprehensive_cost
+     */
+    private BigDecimal comprehensiveCost;
+
+    /**
+     * 费用备注
+     */
+    private String comprehensiveRemark;
+    /**
+     * sale_commission_ratio
+     */
+    private BigDecimal saleCommissionRatio;
+    /**
+     * implement_commission_ratio
+     */
+    private BigDecimal implementCommissionRatio;
+    /**
+     * 信息来源
+     */
+    private BigDecimal source;
+
+    /**
      * 删除状态
      */
     @TableLogic

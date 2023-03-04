@@ -14,6 +14,7 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
+import org.jeecg.modules.mzx.entity.BizProjectScheduleLog;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.jeecg.modules.mzx.service.IBizCustomerServiceLogService;
 import org.jeecg.modules.mzx.vo.CustomerServiceQuery;
@@ -60,8 +61,10 @@ public class CustomerServiceController {
         if (ObjectUtil.isNotNull(serviceLog.getEndDate())) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(serviceLog.getEndDate());
+            cal.add(Calendar.DAY_OF_MONTH, 1);
             queryWrapper.lt(BizCustomerServiceLog::getCreateTime, cal.getTime());
         }
+        queryWrapper.orderByDesc(BizCustomerServiceLog::getCreateTime);
         Page<BizCustomerServiceLog> page = new Page<BizCustomerServiceLog>(pageNo, pageSize);
         IPage<BizCustomerServiceLog> pageList = serviceLogService.page(page, queryWrapper);
         result.setSuccess(true);

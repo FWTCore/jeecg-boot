@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Service
@@ -46,8 +47,15 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         projectEntity.setLeaderName(projectVO.getLeaderName());
         projectEntity.setEstimatedEndTime(projectVO.getEstimatedEndTime());
         projectEntity.setEndTime(projectVO.getEndTime());
-        projectEntity.setCommissionRatio(projectVO.getCommissionRatio());
+        // 固定8%
+        // projectEntity.setCommissionRatio(projectVO.getCommissionRatio());
+        projectEntity.setCommissionRatio(new BigDecimal(8));
+        projectEntity.setImplementCommissionRatio(projectVO.getImplementCommissionRatio());
+        projectEntity.setSaleCommissionRatio(projectVO.getSaleCommissionRatio());
+        projectEntity.setSource(projectVO.getSource());
         projectEntity.setOverview(projectVO.getOverview());
+        projectEntity.setComprehensiveCost(projectVO.getComprehensiveCost());
+        projectEntity.setComprehensiveRemark(projectVO.getComprehensiveRemark());
         projectEntity.setProjectStatus("1");
         projectEntity.setDelFlag(CommonConstant.DEL_FLAG_0);
         projectEntity.setCreateTime(new Date());

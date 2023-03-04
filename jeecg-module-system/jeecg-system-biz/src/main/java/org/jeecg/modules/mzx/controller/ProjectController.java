@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
+import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
@@ -66,21 +67,21 @@ public class ProjectController {
         try {
             BizProjectScheduleTemplate template = projectScheduleTemplateService.getById(projectVO.getProjectScheduleTemplateId());
             if (template == null || template.getDelFlag().equals(CommonConstant.DEL_FLAG_1) || template.getStatus().equals("0")) {
-                result.error500("项目进度模板不存在");
+                throw new JeecgBootException("项目进度模板不存在");
             }
             BizCustomer customerEntity = customerService.getById(projectVO.getCustomerId());
             if (customerEntity == null || customerEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("客户不存在");
+                throw new JeecgBootException("客户不存在");
             }
             projectVO.setCustomerName(customerEntity.getCustomerName());
             SysUser sysUserEntity = sysUserService.getById(projectVO.getSignPersonId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("签单人不存在");
+                throw new JeecgBootException("签单人不存在");
             }
             projectVO.setSignPerson(sysUserEntity.getRealname());
             sysUserEntity = sysUserService.getById(projectVO.getLeaderId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("负责人不存在");
+                throw new JeecgBootException("负责人不存在");
             }
             projectVO.setLeaderName(sysUserEntity.getRealname());
             projectService.CreateProject(projectVO);
@@ -104,22 +105,22 @@ public class ProjectController {
         if (data == null) {
             result.error500("未找到对应实体");
         } else {
-            BizCustomer customerEntity = customerService.getById(projectVO.getCustomerId());
-            if (customerEntity == null || customerEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("客户不存在");
-            }
-            data.setCustomerId(projectVO.getCustomerId());
-            data.setCustomerId(customerEntity.getCustomerName());
+//            BizCustomer customerEntity = customerService.getById(projectVO.getCustomerId());
+//            if (customerEntity == null || customerEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+//                throw new JeecgBootException("客户不存在");
+//            }
+//            data.setCustomerId(projectVO.getCustomerId());
+//            data.setCustomerId(customerEntity.getCustomerName());
 
             SysUser sysUserEntity = sysUserService.getById(projectVO.getSignPersonId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("签单人不存在");
+                throw new JeecgBootException("签单人不存在");
             }
             data.setSignPersonId(projectVO.getSignPersonId());
             data.setSignPerson(sysUserEntity.getRealname());
             sysUserEntity = sysUserService.getById(projectVO.getLeaderId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                result.error500("负责人不存在");
+                 throw new JeecgBootException("负责人不存在");
             }
             data.setLeaderId(projectVO.getLeaderId());
             data.setLeaderName(sysUserEntity.getRealname());
@@ -127,8 +128,13 @@ public class ProjectController {
             data.setPaymentMethod(projectVO.getPaymentMethod());
             data.setEstimatedEndTime(projectVO.getEstimatedEndTime());
             data.setEndTime(projectVO.getEndTime());
-            data.setCommissionRatio(projectVO.getCommissionRatio());
+//            data.setCommissionRatio(projectVO.getCommissionRatio());
             data.setOverview(projectVO.getOverview());
+            data.setComprehensiveRemark(projectVO.getComprehensiveRemark());
+            data.setComprehensiveCost(projectVO.getComprehensiveCost());
+            data.setImplementCommissionRatio(projectVO.getImplementCommissionRatio());
+            data.setSaleCommissionRatio(projectVO.getSaleCommissionRatio());
+            data.setSource(projectVO.getSource());
             data.setUpdateTime(new Date());
             boolean ok = projectService.updateById(data);
             if (ok) {

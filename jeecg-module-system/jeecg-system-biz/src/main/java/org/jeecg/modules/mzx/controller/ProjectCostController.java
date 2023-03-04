@@ -2,6 +2,7 @@ package org.jeecg.modules.mzx.controller;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -20,6 +21,7 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectCost;
+import org.jeecg.modules.mzx.entity.BizProjectScheduleLog;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.jeecg.modules.mzx.vo.ProjectCostQuery;
@@ -59,6 +61,15 @@ public class ProjectCostController {
         if (ObjectUtil.isNotNull(projectCost.getStaff())) {
             queryWrapper.like("staff", projectCost.getStaff());
         }
+        if (ObjectUtil.isNotNull(projectCost.getBeginDate())) {
+            queryWrapper.ge("create_time", projectCost.getBeginDate());
+        }
+        if (ObjectUtil.isNotNull(projectCost.getEndDate())) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(projectCost.getEndDate());
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+            queryWrapper.lt("create_time", cal.getTime());
+        }
         queryWrapper.select("distinct project_id as projectId, staff_id as staffId, date_format(create_time,'%Y-%m-%d') as createTime").orderByDesc("create_time");
         Page<BizProjectCost> page = new Page<BizProjectCost>(pageNo, pageSize);
         IPage<BizProjectCost> pageList = projectCostService.page(page, queryWrapper);
@@ -81,7 +92,7 @@ public class ProjectCostController {
                 queryWrapper.lt("create_time", endtime.getTime());
                 List<BizProjectCost> dataList = projectCostService.list(queryWrapper);
                 JSONObject json = new JSONObject();
-                json.put("id", String.format("%s_%s_%s", data.getProjectId(), data.getProjectId(), data.getCreateTime().getTime()));
+                json.put("id", String.format("%s_%s_%s", data.getProjectId(), data.getStaffId(), data.getCreateTime().getTime()));
                 json.put("projectId", data.getProjectId());
                 json.put("projectName", dataList.stream().findFirst().get().getProjectName());
                 json.put("staffId", data.getStaffId());
@@ -136,6 +147,28 @@ public class ProjectCostController {
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                     Date createTime = formatter.parse(createTimeStr);
                     time.setTime(createTime);
+
+                    //通过id验证数据
+                    String[] idData= id.split("_");
+                    if(idData.length != 3){
+                        throw new JeecgBootException("请刷新页面提交");
+                    }
+                    if(!projectId.equals(idData[0])){
+                        throw new JeecgBootException("请刷新页面提交");
+                    }
+                    if(!staffId.equals(idData[1])){
+                        throw new JeecgBootException("请刷新页面提交");
+                    }
+                    Date idDate = new Date(Long.parseLong(idData[2]));
+                    Calendar idTime = Calendar.getInstance();
+                    idTime.setTime(idDate);
+                    idTime.set(Calendar.HOUR, 0);
+                    idTime.set(Calendar.MINUTE, 0);
+                    idTime.set(Calendar.SECOND, 0);
+                    idTime.set(Calendar.MILLISECOND, 0);
+                    if(time.getTime().getTime()!=idTime.getTime().getTime()){
+                        throw new JeecgBootException("请刷新页面提交");
+                    }
                 } else {
                     // 无id，是为新增，默认未当前登录人
                     LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
@@ -230,7 +263,12 @@ public class ProjectCostController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            projectCostService.removeByIds(Arrays.asList(ids.split(",")));
+            List<String> idData =Arrays.asList(ids.split(","));
+            if(CollectionUtils.isNotEmpty(idData)){
+                for (String id : idData) {
+                    deleteCostData(id);
+                }
+            }
             result.success("删除成功!");
         }
         return result;
@@ -244,14 +282,30 @@ public class ProjectCostController {
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         Result<String> result = new Result<String>();
-        BizProjectCost data = projectCostService.getById(id);
-        if (data == null) {
-            result.error500("未找到对应实体");
-        } else {
-            projectCostService.removeById(id);
-            result.success("删除成功!");
-        }
+        deleteCostData(id);
+        result.success("删除成功!");
         return result;
+    }
+
+    private void deleteCostData(String id){
+        String[] idData= id.split("_");
+        if(idData.length != 3){
+            throw new JeecgBootException("请刷新页面提交");
+        }
+        Date idDate = new Date(Long.parseLong(idData[2]));
+        Calendar idTime = Calendar.getInstance();
+        idTime.setTime(idDate);
+        idTime.set(Calendar.HOUR, 0);
+        idTime.set(Calendar.MINUTE, 0);
+        idTime.set(Calendar.SECOND, 0);
+        idTime.set(Calendar.MILLISECOND, 0);
+        LambdaQueryWrapper<BizProjectCost> lambdaQueryWrapper=new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(BizProjectCost::getProjectId,idData[0]);
+        lambdaQueryWrapper.eq(BizProjectCost::getStaffId,idData[1]);
+        lambdaQueryWrapper.ge(BizProjectCost::getCreateTime,idTime.getTime());
+        idTime.add(Calendar.DAY_OF_MONTH, 1);
+        lambdaQueryWrapper.lt(BizProjectCost::getCreateTime,idTime.getTime());
+        projectCostService.remove(lambdaQueryWrapper);
     }
 
 
