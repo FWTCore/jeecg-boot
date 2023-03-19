@@ -94,7 +94,7 @@ public class ProjectVO implements Serializable {
     /**
      * 信息来源
      */
-    private BigDecimal source;
+    private String source;
     /**
      * 项目概况
      */

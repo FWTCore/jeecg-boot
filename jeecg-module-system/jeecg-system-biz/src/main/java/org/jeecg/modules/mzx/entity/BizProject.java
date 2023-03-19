@@ -110,7 +110,8 @@ public class BizProject implements Serializable {
     /**
      * 信息来源
      */
-    private BigDecimal source;
+    @Dict(dicCode = "project_project_source")
+    private String source;
 
     /**
      * 删除状态

@@ -98,10 +98,13 @@ public class ProjectCostController {
                 json.put("staffId", data.getStaffId());
                 json.put("staff", dataList.stream().findFirst().get().getStaff());
                 json.put("createTime", data.getCreateTime());
+                String costRemark = "";
                 for (BizProjectCost item : dataList) {
                     json.put(String.format("%s_cost", item.getCostKey()), item.getCostValue());
                     json.put(String.format("%s_remark", item.getCostKey()), item.getCostRemark());
+                    costRemark += String.format("%s;", item.getCostRemark());
                 }
+                json.put("cost_remark", costRemark);
                 resultList.getRecords().add(json);
             }
 
@@ -137,6 +140,7 @@ public class ProjectCostController {
                     staff = json.getString("staff").trim();
                 }
                 Calendar time = Calendar.getInstance();
+                Calendar idTime = Calendar.getInstance();
                 // 有id，必须有服务人
                 if (!StringUtil.isNullOrEmpty(id)) {
                     if (StringUtil.isNullOrEmpty(staffId) || StringUtil.isNullOrEmpty(staff)) {
@@ -160,13 +164,12 @@ public class ProjectCostController {
                         throw new JeecgBootException("请刷新页面提交");
                     }
                     Date idDate = new Date(Long.parseLong(idData[2]));
-                    Calendar idTime = Calendar.getInstance();
                     idTime.setTime(idDate);
                     idTime.set(Calendar.HOUR, 0);
                     idTime.set(Calendar.MINUTE, 0);
                     idTime.set(Calendar.SECOND, 0);
                     idTime.set(Calendar.MILLISECOND, 0);
-                    if(time.getTime().getTime()!=idTime.getTime().getTime()){
+                    if (time.getTime().getTime() != idTime.getTime().getTime()) {
                         throw new JeecgBootException("请刷新页面提交");
                     }
                 } else {
@@ -236,6 +239,7 @@ public class ProjectCostController {
                             tempData.setStaffId(staffId);
                             tempData.setStaff(staff);
                             tempData.setDelFlag(CommonConstant.DEL_FLAG_0);
+                            tempData.setCreateTime(idTime.getTime());
                             saveDataList.add(tempData);
                         }
                     }
