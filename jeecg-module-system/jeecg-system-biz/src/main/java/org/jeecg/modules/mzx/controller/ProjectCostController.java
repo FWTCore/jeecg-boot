@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
+import org.jeecg.common.XComEntityExcelView;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.exception.JeecgBootException;
@@ -21,13 +22,19 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectCost;
-import org.jeecg.modules.mzx.entity.BizProjectScheduleLog;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.jeecg.modules.mzx.vo.ProjectCostQuery;
 import org.jeecg.modules.system.service.ISysDictService;
+import org.jeecgframework.poi.excel.ExcelExportUtil;
+import org.jeecgframework.poi.excel.def.NormalExcelConstants;
+import org.jeecgframework.poi.excel.entity.ExportParams;
+import org.jeecgframework.poi.excel.entity.params.ExcelExportEntity;
+import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -46,6 +53,8 @@ public class ProjectCostController {
     private IBizProjectCostService projectCostService;
     @Autowired
     private ISysDictService sysDictService;
+    @Value("${jeecg.path.upload}")
+    private String upLoadPath;
 
 
     @ApiOperation("获取列表")
@@ -116,6 +125,107 @@ public class ProjectCostController {
 
 
     /**
+     * 导出excel
+     *
+     * @param request
+     * @param projectCost
+     */
+    @RequestMapping(value = "/exportXls")
+    public ModelAndView exportXls(HttpServletRequest request, ProjectCostQuery projectCost) {
+        //Step.1 获取数据
+        QueryWrapper<BizProjectCost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
+        if (ObjectUtil.isNotNull(projectCost.getProjectName())) {
+            queryWrapper.like("project_name", projectCost.getProjectName());
+        }
+        if (ObjectUtil.isNotNull(projectCost.getStaff())) {
+            queryWrapper.like("staff", projectCost.getStaff());
+        }
+        if (ObjectUtil.isNotNull(projectCost.getBeginDate())) {
+            queryWrapper.ge("create_time", projectCost.getBeginDate());
+        }
+        if (ObjectUtil.isNotNull(projectCost.getEndDate())) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(projectCost.getEndDate());
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+            queryWrapper.lt("create_time", cal.getTime());
+        }
+        queryWrapper.select("distinct project_id as projectId, staff_id as staffId, date_format(create_time,'%Y-%m-%d') as createTime").orderByDesc("create_time");
+        Page<BizProjectCost> page = new Page<BizProjectCost>(1, 10000);
+        IPage<BizProjectCost> pageList = projectCostService.page(page, queryWrapper);
+
+        // 获取字典配置
+        List<DictModel> costList = sysDictService.queryDictItemsByCode("project_cost_key");
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        List<Map<String, Object>> resultList = new ArrayList<>();
+//        List<JSONObject> resultList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(pageList.getRecords()) && pageList.getRecords().size() > 0) {
+            for (BizProjectCost data : pageList.getRecords()) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
+                queryWrapper.in("project_id", data.getProjectId());
+                queryWrapper.in("staff_id", data.getStaffId());
+                queryWrapper.ge("create_time", data.getCreateTime());
+                Calendar endtime = Calendar.getInstance();
+                endtime.setTime(data.getCreateTime());
+                endtime.add(Calendar.DAY_OF_MONTH, 1);
+                queryWrapper.lt("create_time", endtime.getTime());
+                List<BizProjectCost> dataList = projectCostService.list(queryWrapper);
+
+//                JSONObject json = new JSONObject();
+                Map<String, Object> mp = new HashMap<>();
+//                mp.put("id", String.format("%s_%s_%s", data.getProjectId(), data.getStaffId(), data.getCreateTime().getTime()));
+                mp.put("projectId", data.getProjectId());
+                mp.put("projectName", dataList.stream().findFirst().get().getProjectName());
+                mp.put("staffId", data.getStaffId());
+                mp.put("staff", dataList.stream().findFirst().get().getStaff());
+                mp.put("createTime", dateFormat.format(data.getCreateTime()));
+                String costRemark = "";
+                for (DictModel dict : costList) {
+                    Boolean mapFlag = false;
+                    if (dataList.stream().filter(e -> e.getCostKey().equals(dict.getValue())).count() > 0) {
+                        BizProjectCost item = dataList.stream().filter(e -> e.getCostKey().equals(dict.getValue())).findFirst().orElseGet(null);
+                        if (ObjectUtil.isNotNull(item)) {
+                            mp.put(String.format("%s_cost", dict.getValue()), item.getCostValue());
+                            mp.put(String.format("%s_remark", dict.getValue()), item.getCostRemark());
+                            mapFlag = true;
+                        }
+                    }
+                    if (!mapFlag) {
+                        mp.put(String.format("%s_cost", dict.getValue()), "");
+                        mp.put(String.format("%s_remark", dict.getValue()), "");
+                    }
+                }
+                resultList.add(mp);
+            }
+        }
+
+        //Step.2 AutoPoi 导出Excel
+        ModelAndView mv = new ModelAndView(new XComEntityExcelView());
+        //导出文件名称
+        mv.addObject(NormalExcelConstants.FILE_NAME, "项目费用列表");
+        List<ExcelExportEntity> mapList = new ArrayList<>();
+//        mapList.add(new ExcelExportEntity("项目Id", "projectId"));
+        mapList.add(new ExcelExportEntity("项目名称", "projectName"));
+//        mapList.add(new ExcelExportEntity("服务人Id", "staffId"));
+        mapList.add(new ExcelExportEntity("服务人", "staff"));
+        mapList.add(new ExcelExportEntity("时间", "createTime"));
+        for (DictModel dict : costList) {
+            mapList.add(new ExcelExportEntity(dict.getText(), String.format("%s_cost", dict.getValue())));
+            mapList.add(new ExcelExportEntity(String.format("%s_备注", dict.getText()), String.format("%s_remark", dict.getValue())));
+        }
+        mv.addObject("exportEntity", mapList);
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        ExportParams exportParams = new ExportParams("项目费用列表", "导出人:" + user.getRealname(), "导出信息");
+        exportParams.setImageBasePath(upLoadPath);
+        mv.addObject(NormalExcelConstants.PARAMS, exportParams);
+        mv.addObject(NormalExcelConstants.DATA_LIST, resultList);
+        return mv;
+
+    }
+
+    /**
      * @return
      * @功能：
      */
@@ -153,14 +263,14 @@ public class ProjectCostController {
                     time.setTime(createTime);
 
                     //通过id验证数据
-                    String[] idData= id.split("_");
-                    if(idData.length != 3){
+                    String[] idData = id.split("_");
+                    if (idData.length != 3) {
                         throw new JeecgBootException("请刷新页面提交");
                     }
-                    if(!projectId.equals(idData[0])){
+                    if (!projectId.equals(idData[0])) {
                         throw new JeecgBootException("请刷新页面提交");
                     }
-                    if(!staffId.equals(idData[1])){
+                    if (!staffId.equals(idData[1])) {
                         throw new JeecgBootException("请刷新页面提交");
                     }
                     Date idDate = new Date(Long.parseLong(idData[2]));
@@ -214,7 +324,7 @@ public class ProjectCostController {
                         }
                         // 花费值
                         BigDecimal costValue = new BigDecimal("0");
-                        if(!StringUtil.isNullOrEmpty(costValueStr)){
+                        if (!StringUtil.isNullOrEmpty(costValueStr)) {
                             costValue = new BigDecimal(costValueStr);
                         }
                         String costRemark = "";
@@ -267,8 +377,8 @@ public class ProjectCostController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            List<String> idData =Arrays.asList(ids.split(","));
-            if(CollectionUtils.isNotEmpty(idData)){
+            List<String> idData = Arrays.asList(ids.split(","));
+            if (CollectionUtils.isNotEmpty(idData)) {
                 for (String id : idData) {
                     deleteCostData(id);
                 }
@@ -291,9 +401,9 @@ public class ProjectCostController {
         return result;
     }
 
-    private void deleteCostData(String id){
-        String[] idData= id.split("_");
-        if(idData.length != 3){
+    private void deleteCostData(String id) {
+        String[] idData = id.split("_");
+        if (idData.length != 3) {
             throw new JeecgBootException("请刷新页面提交");
         }
         Date idDate = new Date(Long.parseLong(idData[2]));
@@ -303,12 +413,12 @@ public class ProjectCostController {
         idTime.set(Calendar.MINUTE, 0);
         idTime.set(Calendar.SECOND, 0);
         idTime.set(Calendar.MILLISECOND, 0);
-        LambdaQueryWrapper<BizProjectCost> lambdaQueryWrapper=new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(BizProjectCost::getProjectId,idData[0]);
-        lambdaQueryWrapper.eq(BizProjectCost::getStaffId,idData[1]);
-        lambdaQueryWrapper.ge(BizProjectCost::getCreateTime,idTime.getTime());
+        LambdaQueryWrapper<BizProjectCost> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(BizProjectCost::getProjectId, idData[0]);
+        lambdaQueryWrapper.eq(BizProjectCost::getStaffId, idData[1]);
+        lambdaQueryWrapper.ge(BizProjectCost::getCreateTime, idTime.getTime());
         idTime.add(Calendar.DAY_OF_MONTH, 1);
-        lambdaQueryWrapper.lt(BizProjectCost::getCreateTime,idTime.getTime());
+        lambdaQueryWrapper.lt(BizProjectCost::getCreateTime, idTime.getTime());
         projectCostService.remove(lambdaQueryWrapper);
     }
 
