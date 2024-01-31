@@ -46,8 +46,8 @@ public class CustomerServiceController {
         Result<IPage<BizCustomerServiceLog>> result = new Result<IPage<BizCustomerServiceLog>>();
         LambdaQueryWrapper<BizCustomerServiceLog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BizCustomerServiceLog::getDelFlag, CommonConstant.DEL_FLAG_0);
-        if (ObjectUtil.isNotNull(serviceLog.getCustomerName())) {
-            queryWrapper.like(BizCustomerServiceLog::getCustomerName, serviceLog.getCustomerName());
+        if (ObjectUtil.isNotNull(serviceLog.getCustomerId())) {
+            queryWrapper.like(BizCustomerServiceLog::getCustomerId, serviceLog.getCustomerId());
         }
         if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
             queryWrapper.like(BizCustomerServiceLog::getStaff, serviceLog.getStaff());

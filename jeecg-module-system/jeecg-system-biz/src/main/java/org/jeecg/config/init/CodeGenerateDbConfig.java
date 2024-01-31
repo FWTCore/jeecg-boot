@@ -33,6 +33,7 @@ public class CodeGenerateDbConfig {
 
     @Bean
     public CodeGenerateDbConfig initCodeGenerateDbConfig() {
+
         if(StringUtils.isNotBlank(url)){
             if(StringUtils.isNotBlank(publicKey)){
                 try {

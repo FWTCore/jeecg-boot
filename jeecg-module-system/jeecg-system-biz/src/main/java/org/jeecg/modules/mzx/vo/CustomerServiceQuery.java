@@ -12,9 +12,9 @@ public class CustomerServiceQuery implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 客户名称
+     * 客户id
      */
-    private String customerName;
+    private String customerId;
 
     /**
      * 员工

@@ -29,6 +29,7 @@ public class JeecgSystemApplication extends SpringBootServletInitializer {
     public static void main(String[] args) throws UnknownHostException {
         ConfigurableApplicationContext application = SpringApplication.run(JeecgSystemApplication.class, args);
         Environment env = application.getEnvironment();
+
         String ip = InetAddress.getLocalHost().getHostAddress();
         String port = env.getProperty("server.port");
         String path = oConvertUtils.getString(env.getProperty("server.servlet.context-path"));

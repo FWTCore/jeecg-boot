@@ -6,7 +6,7 @@
             parameterType="org.jeecg.modules.mzx.model.CustomerSyncModel"
             resultType="org.jeecg.modules.mzx.entity.UFTAAPartner">
         select id,code,name,updated,createdTime
-        from UFTData474611_060599.dbo.AA_Partner
+        from AA_Partner
     </select>
     <select id="getCustomerList" resultType="org.jeecg.modules.mzx.entity.BizCustomer">
         select id,

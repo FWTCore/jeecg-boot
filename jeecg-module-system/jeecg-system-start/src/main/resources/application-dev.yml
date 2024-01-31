@@ -136,7 +136,7 @@ spring:
           driver-class-name: com.mysql.cj.jdbc.Driver
           # 多数据源配置
         multi-datasource1:
-          url: jdbc:sqlserver://42.192.47.51:1590;SelectMethod=cursor;DatabaseName=UFTData474611_060599
+          url: jdbc:sqlserver://127.0.0.1:1433;SelectMethod=cursor;DatabaseName=UFTData268637_060888
           username: mzxsa
           password: mzxSA123456!
           driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver

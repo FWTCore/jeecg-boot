@@ -131,12 +131,12 @@ spring:
       datasource:
         master:
           url: jdbc:mysql://127.0.0.1:3306/mzx-xcom-system?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
-          username: root
-          password: CQzhaolin@202201
+          username: mzxoa
+          password: oa123QWE!@#
           driver-class-name: com.mysql.cj.jdbc.Driver
           # 多数据源配置
         multi-datasource1:
-          url: jdbc:sqlserver://127.0.0.1:1590;SelectMethod=cursor;DatabaseName=MZXSystem
+          url: jdbc:sqlserver://127.0.0.1:1433;SelectMethod=cursor;DatabaseName=UFTData806037_060888
           username: mzxsa
           password: mzxSA123456!
           driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
@@ -145,7 +145,7 @@ spring:
     database: 1
     host: 127.0.0.1
     port: 6379
-    password: 'CQzhaolin@202202'
+    password: 'oa123QWE'
 #mybatis plus 设置
 mybatis-plus:
   mapper-locations: classpath*:org/jeecg/modules/**/xml/*Mapper.xml
