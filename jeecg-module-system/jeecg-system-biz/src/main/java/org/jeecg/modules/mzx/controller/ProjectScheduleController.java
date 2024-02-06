@@ -10,11 +10,14 @@ import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
+import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.common.util.DateUtils;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.*;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
@@ -70,8 +73,8 @@ public class ProjectScheduleController {
         Result<IPage<BizProjectScheduleLog>> result = new Result<IPage<BizProjectScheduleLog>>();
         LambdaQueryWrapper<BizProjectScheduleLog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BizProjectScheduleLog::getDelFlag, CommonConstant.DEL_FLAG_0);
-        if (ObjectUtil.isNotNull(serviceLog.getProjectName())) {
-            queryWrapper.like(BizProjectScheduleLog::getProjectName, serviceLog.getProjectName());
+        if (ObjectUtil.isNotNull(serviceLog.getProjectId())) {
+            queryWrapper.like(BizProjectScheduleLog::getProjectId, serviceLog.getProjectId());
         }
         if (ObjectUtil.isNotNull(serviceLog.getScheduleName())) {
             queryWrapper.like(BizProjectScheduleLog::getScheduleName, serviceLog.getScheduleName());
@@ -127,10 +130,14 @@ public class ProjectScheduleController {
             if (project == null || project.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
                 result.error500("未找到对应实体");
             } else {
+                if (!project.getProjectStatus().equals("1") && !project.getProjectStatus().equals("10")) {
+                    throw new JeecgBootException("进行中或已完成的项目才能填写服务日志");
+                }
                 String scheduleName = projectScheduleItemUsageService.getItemFullNameByItemId(projectScheduleLog.getProjectScheduleUsageItemId());
                 if (StringUtil.isNullOrEmpty(scheduleName)) {
-                    result.error500("项目进度不存在");
+                    throw new JeecgBootException("项目进度不存在");
                 } else {
+
                     projectScheduleLog.setProjectName(project.getProjectName());
                     projectScheduleLog.setScheduleName(scheduleName);
                     LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
@@ -139,7 +146,17 @@ public class ProjectScheduleController {
                     if (ObjectUtil.isNull(projectScheduleLog.getOvertimeFlag()) || projectScheduleLog.getOvertimeFlag() != 1) {
                         projectScheduleLog.setOvertime(null);
                     }
-                    projectScheduleLog.setCreateTime(new Date());
+                    if (ObjectUtils.isNotEmpty(projectScheduleLog.getCreateTime())) {
+                        // 7 天
+                        Long intervalImpl = projectScheduleLog.getCreateTime().getTime() - Calendar.getInstance().getTime().getTime();
+                        if (intervalImpl / (24 * 60 * 60 * 1000) >= 0 && intervalImpl / (24 * 60 * 60 * 1000) <= 8) {
+                            projectScheduleLog.setCreateTime(projectScheduleLog.getCreateTime());
+                        } else {
+                            result.error500("只能补录前7天的项目服务日志");
+                        }
+                    } else {
+                        projectScheduleLog.setCreateTime(new Date());
+                    }
                     projectScheduleLog.setDelFlag(CommonConstant.DEL_FLAG_0);
                     projectScheduleLogService.save(projectScheduleLog);
                 }
@@ -147,7 +164,7 @@ public class ProjectScheduleController {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            result.error500("操作失败");
+            result.error500(e.getMessage());
         }
         return result;
     }

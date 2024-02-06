@@ -1,22 +1,31 @@
 package org.jeecg.modules.mzx.controller;
 
+import cn.hutool.core.util.BooleanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectScheduleTemplate;
+import org.jeecg.modules.mzx.entity.BizProjectType;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleTemplateService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.service.IBizProjectTypeService;
 import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.jeecg.modules.mzx.vo.ProjectVO;
 import org.jeecg.modules.system.entity.SysUser;
@@ -25,9 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Api(tags = "项目管理")
 @RestController
@@ -42,6 +50,8 @@ public class ProjectController {
     private ISysUserService sysUserService;
     @Autowired
     private IBizProjectScheduleTemplateService projectScheduleTemplateService;
+    @Autowired
+    private IBizProjectTypeService projectTypeService;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -83,6 +93,16 @@ public class ProjectController {
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
                 throw new JeecgBootException("负责人不存在");
             }
+
+            BizProjectType projectType = projectTypeService.getById(projectVO.getProjectTypeId());
+            if (projectType == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+                throw new JeecgBootException("项目类型不存在");
+            }
+            projectVO.setProjectTypeId(projectType.getId());
+            projectVO.setLifeLine(projectType.getLifeLine());
+            projectVO.setImplementCommissionRatio(projectType.getCommissionRatio());
+            projectVO.setProjectName(projectType.getProjectTypeName());
+
             projectVO.setLeaderName(sysUserEntity.getRealname());
             projectService.CreateProject(projectVO);
             result.success("保存成功！");
@@ -120,8 +140,17 @@ public class ProjectController {
             data.setSignPerson(sysUserEntity.getRealname());
             sysUserEntity = sysUserService.getById(projectVO.getLeaderId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-                 throw new JeecgBootException("负责人不存在");
+                throw new JeecgBootException("负责人不存在");
             }
+            BizProjectType projectType = projectTypeService.getById(projectVO.getProjectTypeId());
+            if (projectType == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+                throw new JeecgBootException("项目类型不存在");
+            }
+            data.setProjectTypeId(projectType.getId());
+            data.setLifeLine(projectType.getLifeLine());
+            data.setImplementCommissionRatio(projectType.getCommissionRatio());
+            data.setProjectTypeName(projectType.getProjectTypeName());
+
             data.setLeaderId(projectVO.getLeaderId());
             data.setLeaderName(sysUserEntity.getRealname());
             data.setContractAmount(projectVO.getContractAmount());
@@ -132,7 +161,7 @@ public class ProjectController {
             data.setOverview(projectVO.getOverview());
             data.setComprehensiveRemark(projectVO.getComprehensiveRemark());
             data.setComprehensiveCost(projectVO.getComprehensiveCost());
-            data.setImplementCommissionRatio(projectVO.getImplementCommissionRatio());
+//            data.setImplementCommissionRatio(projectVO.getImplementCommissionRatio());
             data.setSaleCommissionRatio(projectVO.getSaleCommissionRatio());
             data.setSource(projectVO.getSource());
             data.setUpdateTime(new Date());
@@ -180,11 +209,43 @@ public class ProjectController {
         return result;
     }
 
+
+    @ApiOperation("已完结")
+    @PostMapping(value = "/finish")
+    public Result<Boolean> finish(@RequestBody ProjectVO projectVO) {
+
+        if (ObjectUtils.isEmpty(projectVO) || StringUtils.isBlank(projectVO.getId())) {
+            throw new JeecgBootException("参数错误");
+        }
+
+        LambdaQueryWrapper<BizProject> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(BizProject::getId, projectVO.getId());
+        lambdaQueryWrapper.eq(BizProject::getDelFlag, CommonConstant.DEL_FLAG_0);
+        BizProject project = projectService.getOne(lambdaQueryWrapper);
+        if (ObjectUtils.isEmpty(project)) {
+            throw new JeecgBootException("项目不存在");
+        }
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        if (!project.getLeaderId().equals(user.getId())) {
+            throw new JeecgBootException("只能项目负责人才能完成项目");
+        }
+        if (!project.getProjectStatus().equals("1")) {
+            throw new JeecgBootException("项目非进行中，不能完成操作");
+        }
+        project.setProjectStatus("10");
+        projectService.updateById(project);
+        return Result.ok();
+    }
+
+
     @RequestMapping(value = "/queryall", method = RequestMethod.GET)
-    public Result<List<BizProject>> queryall() {
+    public Result<List<BizProject>> queryall(@RequestParam(name = "remedy", required = false) Boolean remedy) {
         Result<List<BizProject>> result = new Result<>();
-        QueryWrapper<BizProject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0.toString());
+        LambdaQueryWrapper<BizProject> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BizProject::getDelFlag, CommonConstant.DEL_FLAG_0.toString());
+        if (BooleanUtil.isTrue(remedy)) {
+            queryWrapper.in(BizProject::getProjectStatus, Arrays.asList("1", "10"));
+        }
         List<BizProject> list = projectService.list(queryWrapper);
         if (list == null || list.size() <= 0) {
             result.error500("未找到项目信息");
@@ -194,8 +255,6 @@ public class ProjectController {
         }
         return result;
     }
-
-
 
 
 }

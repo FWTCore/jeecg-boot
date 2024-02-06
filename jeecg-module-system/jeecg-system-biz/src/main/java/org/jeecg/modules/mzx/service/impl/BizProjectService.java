@@ -47,6 +47,11 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         projectEntity.setLeaderName(projectVO.getLeaderName());
         projectEntity.setEstimatedEndTime(projectVO.getEstimatedEndTime());
         projectEntity.setEndTime(projectVO.getEndTime());
+
+        projectEntity.setProjectTypeId(projectVO.getProjectTypeId());
+        projectEntity.setProjectTypeName(projectVO.getProjectTypeName());
+        projectEntity.setLifeLine(projectVO.getLifeLine());
+
         // 固定8%
         // projectEntity.setCommissionRatio(projectVO.getCommissionRatio());
         projectEntity.setCommissionRatio(new BigDecimal(8));

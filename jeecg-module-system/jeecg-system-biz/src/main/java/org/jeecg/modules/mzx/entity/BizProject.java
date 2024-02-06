@@ -99,6 +99,21 @@ public class BizProject implements Serializable {
      * 费用备注
      */
     private String comprehensiveRemark;
+
+    /**
+     * 项目类型id
+     */
+    private String projectTypeId;
+
+    /**
+     * 项目类型名称
+     */
+    private String projectTypeName;
+
+    /**
+     * 项目生命线
+     */
+    private BigDecimal lifeLine;
     /**
      * sale_commission_ratio
      */

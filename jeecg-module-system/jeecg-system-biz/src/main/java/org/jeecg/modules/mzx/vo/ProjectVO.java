@@ -84,6 +84,18 @@ public class ProjectVO implements Serializable {
      */
     private BigDecimal commissionRatio;
     /**
+     * 项目类型
+     */
+    private String projectTypeId;
+    /**
+     * 项目类型名称
+     */
+    private String projectTypeName;
+    /**
+     * lifeLine
+     */
+    private BigDecimal lifeLine;
+    /**
      * sale_commission_ratio
      */
     private BigDecimal saleCommissionRatio;

@@ -14,7 +14,7 @@ public class ProjectScheduleQuery implements Serializable {
     /**
      * 项目名称
      */
-    private String projectName;
+    private String projectId;
 
     /**
      * 条目名称
