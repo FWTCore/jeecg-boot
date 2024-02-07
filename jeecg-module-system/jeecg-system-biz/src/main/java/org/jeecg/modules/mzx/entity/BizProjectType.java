@@ -47,7 +47,7 @@ public class BizProjectType implements Serializable {
      * 是否删除
      */
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建人
      */

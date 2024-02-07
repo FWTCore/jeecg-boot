@@ -54,7 +54,7 @@ public class BizEmployeeSalary implements Serializable {
      * 删除状态
      */
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建人
      */
