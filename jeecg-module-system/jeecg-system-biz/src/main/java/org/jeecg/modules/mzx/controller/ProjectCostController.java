@@ -423,4 +423,16 @@ public class ProjectCostController {
     }
 
 
+
+    @ApiOperation("项目成本核算")
+    @RequestMapping(value = "/calculateList", method = RequestMethod.GET)
+    public Result<IPage<JSONObject>> calculateList(ProjectCostQuery projectCost, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
+        Result<IPage<JSONObject>> result = new Result<IPage<JSONObject>>();
+
+        result.setSuccess(true);
+        result.setResult(null);
+        return result;
+    }
+
 }

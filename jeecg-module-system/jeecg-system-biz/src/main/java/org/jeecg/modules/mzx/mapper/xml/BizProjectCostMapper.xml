@@ -2,10 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectCostMapper">
 
+    <select id="listEmployeeProjectCost" resultType="org.jeecg.modules.mzx.model.EmployeeProjectCostModel">
+        select staff_id,
+               cost_key,
+               sum(cost_value) as costValue
+        from biz_project_cost
+        where del_flag = 0
+          and create_time >= #{startTime}
+          and #{endTime} > create_time
+        group by staff_id, cost_key;
 
 
-
-
-
-
+    </select>
 </mapper>

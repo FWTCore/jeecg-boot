@@ -1,7 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizEmployeePayrollMapper">
+    <update id="updateEmployeePayroll">
+        drop temporary table if exists temp_employee_payroll;
+        create temporary table temp_employee_payroll
+        (
+            employee_id varchar(32),
+            salary decimal(20, 4),
+            social_insurance decimal(20, 4),
+            accumulation_fund decimal(20, 4),
+            collect_project_subsidy decimal(20, 4),
+            collect_traffic_subsidy decimal(20, 4),
+            collect_accommodation_subsidy decimal(20, 4),
+            collect_dining_subsidy decimal(20, 4),
+            collect_other_subsidy decimal(20, 4),
+            `period` int,
+            update_by varchar(32)
+        );
+        insert into temp_employee_payroll(employee_id, salary, social_insurance, accumulation_fund,
+                                          collect_project_subsidy, collect_traffic_subsidy,
+                                          collect_accommodation_subsidy,
+                                          collect_dining_subsidy, collect_other_subsidy, `period`, update_by)
+        values
+        <foreach collection="list" item="payroll" separator="," open="(" close=")">
+            #{payroll.employeeId},#{payroll.salary},#{payroll.socialInsurance},#{payroll.accumulationFund},#{payroll.collectProjectSubsidy},#{payroll.collectTrafficSubsidy},
+            #{payroll.collectAccommodationSubsidy},#{payroll.collectDiningSubsidy},#{payroll.collectOtherSubsidy},#{payroll.period},#{payroll.updateBy}
+        </foreach>
+        ;
 
 
+        update biz_employee_payroll as bep
+            inner join temp_employee_payroll as tep
+        on bep.employee_id = tep.employee_id and bep.`period` = tep.`period`
+            set bep.salary=tep.salary,
+                bep.social_insurance=tep.social_insurance,
+                bep.accumulation_fund=tep.accumulation_fund,
+                bep.collect_project_subsidy=tep.collect_project_subsidy,
+                bep.project_subsidy=tep.collect_project_subsidy,
+                bep.collect_traffic_subsidy=tep.collect_traffic_subsidy,
+                bep.traffic_subsidy=tep.collect_traffic_subsidy,
+                bep.collect_accommodation_subsidy=tep.collect_accommodation_subsidy,
+                bep.accommodation_subsidy=tep.collect_accommodation_subsidy,
+                bep.collect_dining_subsidy=tep.collect_dining_subsidy,
+                bep.dining_subsidy=tep.collect_dining_subsidy,
+                bep.collect_other_subsidy=tep.collect_other_subsidy,
+                bep.other_subsidy=tep.collect_other_subsidy,
+                bep.update_by=tep.update_by
+        where bep.payroll_status = 1
+          and bep.del_flag = 0;
 
+        drop temporary table if exists temp_employee_payroll;
+    </update>
 </mapper>

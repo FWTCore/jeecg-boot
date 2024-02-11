@@ -93,6 +93,7 @@ public class ProjectScheduleItemTemplateController {
             result.error500("未找到对应实体");
         } else {
             data.setItemName(projectScheduleItemTemplate.getItemName());
+            data.setCommission(projectScheduleItemTemplate.getCommission());
             data.setDefaultText(projectScheduleItemTemplate.getDefaultText());
             data.setDirections(projectScheduleItemTemplate.getDirections());
             data.setSortOrder(projectScheduleItemTemplate.getSortOrder());

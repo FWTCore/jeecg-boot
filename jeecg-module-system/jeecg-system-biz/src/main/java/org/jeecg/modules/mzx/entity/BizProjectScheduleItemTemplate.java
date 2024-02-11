@@ -10,6 +10,7 @@ import org.jeecg.common.aspect.annotation.Dict;
 import org.jeecgframework.poi.excel.annotation.Excel;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -99,4 +100,9 @@ public class BizProjectScheduleItemTemplate implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 提成占比
+     */
+    private BigDecimal commission;
 }
