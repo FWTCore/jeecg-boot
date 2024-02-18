@@ -14,38 +14,31 @@
             collect_accommodation_subsidy decimal(20, 4),
             collect_dining_subsidy decimal(20, 4),
             collect_other_subsidy decimal(20, 4),
-            `period` int,
-            update_by varchar(32)
+            `period` int
         );
         insert into temp_employee_payroll(employee_id, salary, social_insurance, accumulation_fund,
                                           collect_project_subsidy, collect_traffic_subsidy,
                                           collect_accommodation_subsidy,
-                                          collect_dining_subsidy, collect_other_subsidy, `period`, update_by)
+                                          collect_dining_subsidy, collect_other_subsidy, `period`)
         values
         <foreach collection="list" item="payroll" separator="," open="(" close=")">
             #{payroll.employeeId},#{payroll.salary},#{payroll.socialInsurance},#{payroll.accumulationFund},#{payroll.collectProjectSubsidy},#{payroll.collectTrafficSubsidy},
-            #{payroll.collectAccommodationSubsidy},#{payroll.collectDiningSubsidy},#{payroll.collectOtherSubsidy},#{payroll.period},#{payroll.updateBy}
+            #{payroll.collectAccommodationSubsidy},#{payroll.collectDiningSubsidy},#{payroll.collectOtherSubsidy},#{payroll.period}
         </foreach>
         ;
 
 
         update biz_employee_payroll as bep
-            inner join temp_employee_payroll as tep
-        on bep.employee_id = tep.employee_id and bep.`period` = tep.`period`
+        inner join temp_employee_payroll as tep on bep.employee_id = tep.employee_id and bep.`period` = tep.`period`
             set bep.salary=tep.salary,
                 bep.social_insurance=tep.social_insurance,
                 bep.accumulation_fund=tep.accumulation_fund,
                 bep.collect_project_subsidy=tep.collect_project_subsidy,
-                bep.project_subsidy=tep.collect_project_subsidy,
                 bep.collect_traffic_subsidy=tep.collect_traffic_subsidy,
-                bep.traffic_subsidy=tep.collect_traffic_subsidy,
                 bep.collect_accommodation_subsidy=tep.collect_accommodation_subsidy,
-                bep.accommodation_subsidy=tep.collect_accommodation_subsidy,
                 bep.collect_dining_subsidy=tep.collect_dining_subsidy,
-                bep.dining_subsidy=tep.collect_dining_subsidy,
                 bep.collect_other_subsidy=tep.collect_other_subsidy,
-                bep.other_subsidy=tep.collect_other_subsidy,
-                bep.update_by=tep.update_by
+                bep.created_time=now()
         where bep.payroll_status = 1
           and bep.del_flag = 0;
 

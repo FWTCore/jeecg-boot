@@ -18,6 +18,7 @@ import org.jeecg.modules.mzx.service.IBizEmployeeSalaryService;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
+import org.jeewx.api.core.common.JSONHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -170,6 +171,7 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
 
         if (CollectionUtil.isNotEmpty(employeePayrollUpdateList)) {
             try {
+                log.info(String.format("更新数据对象：【%s】", JSONHelper.toJSONString(employeePayrollUpdateList)));
                 employeePayrollMapper.updateEmployeePayroll(employeePayrollUpdateList);
             } catch (Exception exception) {
                 log.warn("员工工资更新异常", exception);
@@ -177,6 +179,7 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
         }
         if (CollectionUtil.isNotEmpty(employeePayrollInsertList)) {
             try {
+                log.info(String.format("新增数据对象：【%s】", JSONHelper.toJSONString(employeePayrollInsertList)));
                 this.saveBatch(employeePayrollInsertList);
             } catch (Exception exception) {
                 log.warn("员工工资新增异常", exception);
