@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -182,6 +183,8 @@ public class EmployeePayrollController {
             if (ObjectUtils.isNotEmpty(payroll)) {
                 throw new JeecgBootException("该员工工资已存在，请核对后处理");
             }
+            // 综合工资
+            payroll.setComprehensivePayroll(calculateComprehensivePayroll(payroll));
             employeePayroll.setCreatedTime(new Date());
             employeePayroll.setDelFlag(CommonConstant.DEL_FLAG_0);
             Short payrollStatus = 1;
@@ -207,7 +210,7 @@ public class EmployeePayrollController {
         try {
 
             BizEmployeePayroll existEntity = bizEmployeePayrollService.getById(employeePayroll.getId());
-            if(ObjectUtils.isEmpty(existEntity)){
+            if (ObjectUtils.isEmpty(existEntity)) {
                 throw new JeecgBootException("数据不存在");
             }
             SysUser sysUser = sysUserService.getById(employeePayroll.getEmployeeId());
@@ -224,6 +227,8 @@ public class EmployeePayrollController {
             if (ObjectUtils.isNotEmpty(payroll)) {
                 throw new JeecgBootException("该员工工资已存在，请核对后处理");
             }
+            // 综合工资
+            employeePayroll.setComprehensivePayroll(calculateComprehensivePayroll(employeePayroll));
             employeePayroll.setUpdateTime(new Date());
             employeePayroll.setDelFlag(CommonConstant.DEL_FLAG_0);
             bizEmployeePayrollService.updateById(employeePayroll);
@@ -233,6 +238,35 @@ public class EmployeePayrollController {
             result.error500(e.getMessage());
         }
         return result;
+    }
+
+
+    /**
+     * 计算综合工资
+     *
+     * @param employeePayroll
+     * @return
+     */
+    private BigDecimal calculateComprehensivePayroll(BizEmployeePayroll employeePayroll) {
+        // 综合薪资=基本工资+社保+公积金+项目补助
+        BigDecimal comprehensivePayroll = BigDecimal.ZERO;
+        //基本工资
+        if (ObjectUtils.isNotEmpty(employeePayroll.getSalary())) {
+            comprehensivePayroll = comprehensivePayroll.add(employeePayroll.getSalary());
+        }
+        //社保
+        if (ObjectUtils.isNotEmpty(employeePayroll.getSocialInsurance())) {
+            comprehensivePayroll = comprehensivePayroll.add(employeePayroll.getSocialInsurance());
+        }
+        //公积金
+        if (ObjectUtils.isNotEmpty(employeePayroll.getAccumulationFund())) {
+            comprehensivePayroll = comprehensivePayroll.add(employeePayroll.getAccumulationFund());
+        }
+        //项目补助
+        if (ObjectUtils.isNotEmpty(employeePayroll.getProjectSubsidy())) {
+            comprehensivePayroll = comprehensivePayroll.add(employeePayroll.getProjectSubsidy());
+        }
+        return comprehensivePayroll;
     }
 
 }

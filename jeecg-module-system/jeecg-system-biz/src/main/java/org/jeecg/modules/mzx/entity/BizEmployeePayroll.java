@@ -116,6 +116,10 @@ public class BizEmployeePayroll implements Serializable {
      */
     private String otherSubsidyRemark;
     /**
+     * 综合薪资
+     */
+    private BigDecimal comprehensivePayroll;
+    /**
      * 周期
      */
     private Integer period;

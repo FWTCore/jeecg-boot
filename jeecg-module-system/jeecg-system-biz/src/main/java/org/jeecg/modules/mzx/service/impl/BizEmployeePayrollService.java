@@ -22,6 +22,7 @@ import org.jeewx.api.core.common.JSONHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,6 +112,11 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
                 tempData.setSocialInsurance(employeeSalary.getSocialInsurance());
                 tempData.setAccumulationFund(employeeSalary.getAccumulationFund());
             }
+            else {
+                tempData.setSalary(BigDecimal.ZERO);
+                tempData.setSocialInsurance(BigDecimal.ZERO);
+                tempData.setAccumulationFund(BigDecimal.ZERO);
+            }
             List<EmployeeProjectCostModel> employeeProjectCostList = employeeProjectCostModels.stream().filter(projectCost -> projectCost.getStaffId().equals(user.getId())).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(employeeProjectCostList)) {
                 // CostKey:1 补助
@@ -119,11 +125,19 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
                     tempData.setCollectProjectSubsidy(projectCostOptional.get().getCostValue());
                     tempData.setProjectSubsidy(projectCostOptional.get().getCostValue());
                 }
+                else {
+                    tempData.setCollectProjectSubsidy(BigDecimal.ZERO);
+                    tempData.setProjectSubsidy(BigDecimal.ZERO);
+                }
                 // CostKey:2 交通补助
                 projectCostOptional = employeeProjectCostList.stream().filter(e -> e.getCostKey().equals("2")).findFirst();
                 if (projectCostOptional.isPresent()) {
                     tempData.setCollectTrafficSubsidy(projectCostOptional.get().getCostValue());
                     tempData.setTrafficSubsidy(projectCostOptional.get().getCostValue());
+                }
+                else {
+                    tempData.setCollectTrafficSubsidy(BigDecimal.ZERO);
+                    tempData.setTrafficSubsidy(BigDecimal.ZERO);
                 }
                 // CostKey:10 住宿补助
                 projectCostOptional = employeeProjectCostList.stream().filter(e -> e.getCostKey().equals("10")).findFirst();
@@ -131,11 +145,19 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
                     tempData.setCollectAccommodationSubsidy(projectCostOptional.get().getCostValue());
                     tempData.setAccommodationSubsidy(projectCostOptional.get().getCostValue());
                 }
+                else {
+                    tempData.setCollectAccommodationSubsidy(BigDecimal.ZERO);
+                    tempData.setAccommodationSubsidy(BigDecimal.ZERO);
+                }
                 // CostKey:3 餐费
                 projectCostOptional = employeeProjectCostList.stream().filter(e -> e.getCostKey().equals("3")).findFirst();
                 if (projectCostOptional.isPresent()) {
                     tempData.setCollectDiningSubsidy(projectCostOptional.get().getCostValue());
                     tempData.setDiningSubsidy(projectCostOptional.get().getCostValue());
+                }
+                else {
+                    tempData.setCollectDiningSubsidy(BigDecimal.ZERO);
+                    tempData.setDiningSubsidy(BigDecimal.ZERO);
                 }
                 // CostKey:4 其他费用
                 projectCostOptional = employeeProjectCostList.stream().filter(e -> e.getCostKey().equals("4")).findFirst();
@@ -143,7 +165,30 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
                     tempData.setCollectOtherSubsidy(projectCostOptional.get().getCostValue());
                     tempData.setOtherSubsidy(projectCostOptional.get().getCostValue());
                 }
+                else {
+                    tempData.setCollectOtherSubsidy(BigDecimal.ZERO);
+                    tempData.setOtherSubsidy(BigDecimal.ZERO);
+                }
             }
+            // 综合薪资=基本工资+社保+公积金+项目补助
+            BigDecimal comprehensivePayroll = BigDecimal.ZERO;
+            //基本工资
+            if (ObjectUtils.isNotEmpty(tempData.getSalary())) {
+                comprehensivePayroll = comprehensivePayroll.add(tempData.getSalary());
+            }
+            //社保
+            if (ObjectUtils.isNotEmpty(tempData.getSocialInsurance())) {
+                comprehensivePayroll = comprehensivePayroll.add(tempData.getSocialInsurance());
+            }
+            //公积金
+            if (ObjectUtils.isNotEmpty(tempData.getAccumulationFund())) {
+                comprehensivePayroll = comprehensivePayroll.add(tempData.getAccumulationFund());
+            }
+            //项目补助
+            if (ObjectUtils.isNotEmpty(tempData.getProjectSubsidy())) {
+                comprehensivePayroll = comprehensivePayroll.add(tempData.getProjectSubsidy());
+            }
+            tempData.setComprehensivePayroll(comprehensivePayroll);
             tempData.setPeriod(period);
             // 待生效
             tempData.setPayrollStatus((short) 1);
