@@ -21,9 +21,9 @@
                                           collect_accommodation_subsidy,
                                           collect_dining_subsidy, collect_other_subsidy, `period`)
         values
-        <foreach collection="list" item="payroll" separator="," open="(" close=")">
-            #{payroll.employeeId},#{payroll.salary},#{payroll.socialInsurance},#{payroll.accumulationFund},#{payroll.collectProjectSubsidy},#{payroll.collectTrafficSubsidy},
-            #{payroll.collectAccommodationSubsidy},#{payroll.collectDiningSubsidy},#{payroll.collectOtherSubsidy},#{payroll.period}
+        <foreach collection="list" item="payroll" separator=",">
+            (#{payroll.employeeId},#{payroll.salary},#{payroll.socialInsurance},#{payroll.accumulationFund},#{payroll.collectProjectSubsidy},#{payroll.collectTrafficSubsidy},
+            #{payroll.collectAccommodationSubsidy},#{payroll.collectDiningSubsidy},#{payroll.collectOtherSubsidy},#{payroll.period})
         </foreach>
         ;
 
