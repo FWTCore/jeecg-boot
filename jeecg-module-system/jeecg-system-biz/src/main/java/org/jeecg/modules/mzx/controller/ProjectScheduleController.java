@@ -20,10 +20,7 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.DateUtils;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.*;
-import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
-import org.jeecg.modules.mzx.service.IBizProjectScheduleLogService;
-import org.jeecg.modules.mzx.service.IBizProjectScheduleUsageService;
-import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.service.*;
 import org.jeecg.modules.mzx.vo.ProjectScheduleQuery;
 import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +47,8 @@ public class ProjectScheduleController {
     private IBizProjectScheduleItemUsageService projectScheduleItemUsageService;
     @Autowired
     private IBizProjectScheduleLogService projectScheduleLogService;
+    @Autowired
+    private IBizWorkHoursService bizWorkHoursService;
 
 
     @RequestMapping(value = "/queryByProjectId", method = RequestMethod.GET)
@@ -137,10 +136,14 @@ public class ProjectScheduleController {
                 if (StringUtil.isNullOrEmpty(scheduleName)) {
                     throw new JeecgBootException("项目进度不存在");
                 } else {
+                    LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                    // 校验总时长
+                    //Calendar instance = Calendar.getInstance();
+                    //instance.set();
+                    //bizWorkHoursService.getTotalWorkHours(sysUser.getId(),)
 
                     projectScheduleLog.setProjectName(project.getProjectName());
                     projectScheduleLog.setScheduleName(scheduleName);
-                    LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
                     projectScheduleLog.setStaffId(sysUser.getId());
                     projectScheduleLog.setStaff(sysUser.getRealname());
                     if (ObjectUtil.isNull(projectScheduleLog.getOvertimeFlag()) || projectScheduleLog.getOvertimeFlag() != 1) {

@@ -18,5 +18,14 @@ public interface IBizProjectCostService extends IService<BizProjectCost> {
      */
     List<EmployeeProjectCostModel> listEmployeeProjectCost(Date startTime, Date endTime);
 
+
+    /**
+     * 获取员工每个项目费用
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    List<EmployeeProjectCostModel> listEmployeeEachProjectCost(Date startTime, Date endTime);
+
 }
 

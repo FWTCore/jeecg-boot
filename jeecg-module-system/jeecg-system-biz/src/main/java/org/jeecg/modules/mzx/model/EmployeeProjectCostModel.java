@@ -19,6 +19,10 @@ public class EmployeeProjectCostModel implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 项目Id
+     */
+    private String projectId;
+    /**
      * 员工Id
      */
     private String staffId;

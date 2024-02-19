@@ -28,4 +28,12 @@ public class BizProjectCostService extends ServiceImpl<BizProjectCostMapper, Biz
         }
         return projectCostMapper.listEmployeeProjectCost(startTime, endTime);
     }
+
+    @Override
+    public List<EmployeeProjectCostModel> listEmployeeEachProjectCost(Date startTime, Date endTime) {
+        if (ObjectUtils.isEmpty(startTime) || ObjectUtils.isEmpty(endTime)) {
+            return new ArrayList<>();
+        }
+        return projectCostMapper.listEmployeeEachProjectCost(startTime, endTime);
+    }
 }

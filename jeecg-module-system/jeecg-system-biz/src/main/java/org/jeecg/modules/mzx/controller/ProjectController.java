@@ -101,7 +101,7 @@ public class ProjectController {
             projectVO.setProjectTypeId(projectType.getId());
             projectVO.setLifeLine(projectType.getLifeLine());
             projectVO.setImplementCommissionRatio(projectType.getCommissionRatio());
-            projectVO.setProjectName(projectType.getProjectTypeName());
+            projectVO.setProjectTypeName(projectType.getProjectTypeName());
 
             projectVO.setLeaderName(sysUserEntity.getRealname());
             projectService.CreateProject(projectVO);
