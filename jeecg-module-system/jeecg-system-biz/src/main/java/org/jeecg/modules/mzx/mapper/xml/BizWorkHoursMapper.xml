@@ -2,21 +2,23 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizWorkHoursMapper">
     <select id="getTotalWorkHours" resultType="java.math.BigDecimal">
-        select (select sum(work_hours)
+        select (select  ifnull(sum(work_hours),0)
                 from biz_customer_service_log
                 where del_flag = 0
                   and create_time >= #{startTime}
                   and #{endTime} > create_time
-                  and staff_id = #{staffId}) +
+                  and staff_id = #{staffId}
+               ) +
                (
-                   select sum(work_hours)
+                   select  ifnull(sum(work_hours),0)
                    from biz_project_schedule_log
                    where del_flag = 0
                      and create_time >= #{startTime}
                      and #{endTime} > create_time
-                     and staff_id = #{staffId}) +
+                     and staff_id = #{staffId}
+               ) +
                (
-                   select sum(work_hours)
+                   select  ifnull(sum(work_hours),0)
                    from biz_work_log
                    where del_flag = 0
                      and create_time >= #{startTime}

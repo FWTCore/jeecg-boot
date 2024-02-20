@@ -1,6 +1,7 @@
 package org.jeecg.modules.mzx.controller;
 
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -11,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -137,10 +140,6 @@ public class ProjectScheduleController {
                     throw new JeecgBootException("项目进度不存在");
                 } else {
                     LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-                    // 校验总时长
-                    //Calendar instance = Calendar.getInstance();
-                    //instance.set();
-                    //bizWorkHoursService.getTotalWorkHours(sysUser.getId(),)
 
                     projectScheduleLog.setProjectName(project.getProjectName());
                     projectScheduleLog.setScheduleName(scheduleName);
@@ -160,7 +159,23 @@ public class ProjectScheduleController {
                     } else {
                         projectScheduleLog.setCreateTime(new Date());
                     }
+                    // 校验总时长
+                    Calendar instance = Calendar.getInstance();
+                    Date startTime = DateUtil.beginOfDay(projectScheduleLog.getCreateTime());
+                    instance.setTime(startTime);
+                    instance.add(Calendar.DAY_OF_MONTH, 1);
+                    Date endTime = instance.getTime();
+                    BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
+                    BigDecimal totalWorkHours = workHours.add(projectScheduleLog.getWorkHours());
+                    // 工时大于1
+                    if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
+                        throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours)));
+                    }
+
                     projectScheduleLog.setDelFlag(CommonConstant.DEL_FLAG_0);
+                    if (StringUtils.isBlank(projectScheduleLog.getServiceType())) {
+                        projectScheduleLog.setServiceType(null);
+                    }
                     projectScheduleLogService.save(projectScheduleLog);
                 }
                 result.success("保存成功！");
@@ -188,8 +203,28 @@ public class ProjectScheduleController {
             if (StringUtil.isNullOrEmpty(scheduleName)) {
                 result.error500("项目进度不存在");
             } else {
+                LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                // 校验总时长
+                Calendar instance = Calendar.getInstance();
+                Date startTime = DateUtil.beginOfDay(data.getCreateTime());
+                instance.setTime(startTime);
+                instance.add(Calendar.DAY_OF_MONTH, 1);
+                Date endTime = instance.getTime();
+                BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
+                BigDecimal totalWorkHours = workHours.add(projectScheduleLog.getWorkHours());
+                totalWorkHours = totalWorkHours.subtract(data.getWorkHours());
+                // 工时大于1
+                if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
+                    throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours).add(data.getWorkHours())));
+                }
+
                 data.setScheduleName(scheduleName);
-                data.setServiceType(projectScheduleLog.getServiceType());
+                if (StringUtils.isBlank(projectScheduleLog.getServiceType())) {
+                    data.setServiceType(null);
+                }
+                else {
+                    data.setServiceType(projectScheduleLog.getServiceType());
+                }
                 data.setServiceContent(projectScheduleLog.getServiceContent());
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());

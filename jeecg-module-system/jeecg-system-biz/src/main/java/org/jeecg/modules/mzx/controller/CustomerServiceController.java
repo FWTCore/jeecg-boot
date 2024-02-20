@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
+import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
@@ -17,11 +19,13 @@ import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizProjectScheduleLog;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
 import org.jeecg.modules.mzx.service.IBizCustomerServiceLogService;
+import org.jeecg.modules.mzx.service.IBizWorkHoursService;
 import org.jeecg.modules.mzx.vo.CustomerServiceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,6 +41,8 @@ public class CustomerServiceController {
 
     @Autowired
     private IBizCustomerServiceLogService serviceLogService;
+    @Autowired
+    private IBizWorkHoursService bizWorkHoursService;
 
 
     @ApiOperation("获取列表")
@@ -91,12 +97,25 @@ public class CustomerServiceController {
                 serviceLog.setStaff(sysUser.getRealname());
                 serviceLog.setCreateTime(new Date());
                 serviceLog.setDelFlag(CommonConstant.DEL_FLAG_0);
+
+                // 校验总时长
+                Calendar instance = Calendar.getInstance();
+                Date startTime = DateUtil.beginOfDay(serviceLog.getCreateTime());
+                instance.setTime(startTime);
+                instance.add(Calendar.DAY_OF_MONTH, 1);
+                Date endTime = instance.getTime();
+                BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
+                BigDecimal totalWorkHours = workHours.add(serviceLog.getWorkHours());
+                // 工时大于1
+                if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
+                    throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours)));
+                }
                 serviceLogService.save(serviceLog);
                 result.success("保存成功！");
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            result.error500("操作失败");
+            result.error500(e.getMessage());
         }
         return result;
     }
@@ -113,6 +132,21 @@ public class CustomerServiceController {
         if (data == null || data.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
             result.error500("未找到对应实体");
         } else {
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            // 校验总时长
+            Calendar instance = Calendar.getInstance();
+            Date startTime = DateUtil.beginOfDay(data.getCreateTime());
+            instance.setTime(startTime);
+            instance.add(Calendar.DAY_OF_MONTH, 1);
+            Date endTime = instance.getTime();
+            BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
+            BigDecimal totalWorkHours = workHours.add(serviceLog.getWorkHours());
+            totalWorkHours = totalWorkHours.subtract(data.getWorkHours());
+            // 工时大于1
+            if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
+                throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours).add(data.getWorkHours())));
+            }
+
             data.setServiceContent(serviceLog.getServiceContent());
             data.setWorkHours(serviceLog.getWorkHours());
             data.setNextPlanContent(serviceLog.getNextPlanContent());
