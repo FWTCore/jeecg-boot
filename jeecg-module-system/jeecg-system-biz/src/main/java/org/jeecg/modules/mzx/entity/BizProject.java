@@ -77,7 +77,7 @@ public class BizProject implements Serializable {
     private Date endTime;
 
     /**
-     * commission_ratio
+     * 提成比例%
      */
     private BigDecimal commissionRatio;
     /**
@@ -91,7 +91,7 @@ public class BizProject implements Serializable {
     private String projectStatus;
 
     /**
-     * comprehensive_cost
+     * 综合费用
      */
     private BigDecimal comprehensiveCost;
 
@@ -115,11 +115,11 @@ public class BizProject implements Serializable {
      */
     private BigDecimal lifeLine;
     /**
-     * sale_commission_ratio
+     * 销售提成比例%
      */
     private BigDecimal saleCommissionRatio;
     /**
-     * implement_commission_ratio
+     * 实施提成比例%
      */
     private BigDecimal implementCommissionRatio;
     /**

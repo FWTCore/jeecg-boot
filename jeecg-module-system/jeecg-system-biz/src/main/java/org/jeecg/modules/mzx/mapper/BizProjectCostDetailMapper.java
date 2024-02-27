@@ -1,7 +1,11 @@
 package org.jeecg.modules.mzx.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.jeecg.modules.mzx.entity.BizProjectCostDetail;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * 项目人工成本核算
@@ -11,4 +15,36 @@ import org.jeecg.modules.mzx.entity.BizProjectCostDetail;
  */
 
 public interface BizProjectCostDetailMapper extends BaseMapper<BizProjectCostDetail> {
+
+
+    /**
+     * 获取需要计算成本项目id列表
+     * 监控表 创建或变动
+     * biz_project
+     * biz_project_cost
+     * biz_project_member
+     * biz_project_schedule_item_usage
+     * biz_project_schedule_log
+     * biz_project_schedule_usage
+     *
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    List<String> listMonitorCostProject(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
+
+    /**
+     * 新增数据
+     *
+     * @param dataList
+     */
+    void insertProjectCostDetail(@Param("dataList") List<BizProjectCostDetail> dataList);
+
+    /**
+     * 更新数据
+     *
+     * @param dataList
+     */
+    void updateProjectCostDetail(@Param("dataList") List<BizProjectCostDetail> dataList);
+
 }

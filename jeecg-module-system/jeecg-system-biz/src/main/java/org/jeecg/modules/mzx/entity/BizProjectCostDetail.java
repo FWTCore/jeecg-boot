@@ -48,10 +48,6 @@ public class BizProjectCostDetail implements Serializable {
      */
     private String employeeName;
     /**
-     * 工作时长
-     */
-    private BigDecimal workHours;
-    /**
      * 工作天数
      */
     private BigDecimal workDays;
@@ -67,7 +63,7 @@ public class BizProjectCostDetail implements Serializable {
      * 是否删除
      */
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建人
      */

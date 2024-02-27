@@ -55,7 +55,14 @@ public class ProjectCostMonthJob implements Job {
 
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostMonthJob !   时间:" + DateUtils.now(), this.parameter));
-
+        try {
+            // 项目人工成本核算
+            projectCostDetailService.initProjectCostDetail(lastMonthStartTime, lastMonthEndTime);
+            // 项目成本核算
+            projectCostCalculateService.initProjectCostCalculate(lastMonthStartTime, lastMonthEndTime);
+        } catch (Exception exception) {
+            log.error("任务 ProjectCostDayJob 异常", exception);
+        }
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey() + "执行完成");
 
 

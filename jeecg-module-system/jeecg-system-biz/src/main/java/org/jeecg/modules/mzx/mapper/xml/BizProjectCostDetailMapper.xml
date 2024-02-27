@@ -1,6 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectCostDetailMapper">
+    <select id="listMonitorCostProject" resultType="java.lang.String">
+        select distinct id as projectId
+        from biz_project
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+        union
+        select distinct project_id as projectId
+        from biz_project_cost
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+        union
+        select distinct project_id as projectId
+        from biz_project_member
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+        union
+        select distinct project_id as projectId
+        from biz_project_schedule_item_usage
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+        union
+        select distinct project_id as projectId
+        from biz_project_schedule_usage
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+        union
+        select distinct project_id as projectId
+        from biz_project_schedule_log
+        where (
+                    create_time >= #{startTime}
+                and #{endTime} > create_time
+            )
+           or (
+                    update_time >= #{startTime}
+                and #{endTime} > update_time
+            )
+    </select>
 
+    <insert id="insertProjectCostDetail">
+        drop temporary table if exists temp_project_cost_detail;
+        create temporary table temp_project_cost_detail
+        (
+            id                    varchar(32),
+            project_id            varchar(32),
+            project_name          varchar(100),
+            `period`              int null,
+            employee_id           varchar(32),
+            employee_name         varchar(100),
+            work_hours            decimal(8, 2),
+            comprehensive_subsidy decimal(20, 4),
+            labor_cost            decimal(20, 4)
+        );
+        insert into temp_project_cost_detail(id, project_id, project_name, `period`, employee_id, employee_name, work_hours,comprehensive_subsidy, labor_cost)
+        values
+        <foreach collection="dataList" item="data" separator =",">
+            (#{data.id},#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost})
+        </foreach>
+        ;
+        INSERT INTO biz_project_cost_detail
+        (id, project_id, project_name, `period`, employee_id, employee_name, work_hours, comprehensive_subsidy, labor_cost, del_flag, create_by, created_time, update_by, update_time)
+        select id, project_id, project_name, `period`, employee_id, employee_name, work_hours, comprehensive_subsidy, labor_cost, 0, null, now(), null, now()
+        from temp_project_cost_detail tep
+        where not exists (
+            select 1
+            from biz_project_cost_detail bpcd
+            where bpcd.project_id = tep.project_id
+                and bpcd.`period` = tep.`period`
+                and bpcd.employee_id = tep.employee_id
+        );
+        drop temporary table if exists temp_project_cost_detail;
+
+    </insert>
+    <update id="updateProjectCostDetail">
+        drop temporary table if exists temp_project_cost_detail;
+        create temporary table temp_project_cost_detail
+        (
+            project_id varchar(32),
+            project_name varchar(100),
+            `period` int null,
+            employee_id varchar(32),
+            employee_name varchar(100),
+            work_hours decimal(8, 2),
+            comprehensive_subsidy decimal(20, 4),
+            labor_cost decimal(20, 4)
+        );
+        insert into temp_project_cost_detail(project_id, project_name, `period`, employee_id, employee_name, work_hours,comprehensive_subsidy, labor_cost)
+        values
+        <foreach collection="dataList" item="data" separator=",">
+            (#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost})
+        </foreach>
+        ;
+        update biz_project_cost_detail as bpcd
+        inner join temp_project_cost_detail as tep on bpcd.project_id = tep.project_id and bpcd.`period` = tep.`period` and bpcd.employee_id = tep.employee_id
+        set bpcd.work_hours=tep.work_hours,
+            bpcd.comprehensive_subsidy=tep.comprehensive_subsidy,
+            bpcd.labor_cost=tep.labor_cost,
+            bep.update_time=now()
+        ;
+        drop temporary table if exists temp_project_cost_detail;
+    </update>
 
 </mapper>

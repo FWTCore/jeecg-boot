@@ -53,10 +53,14 @@ public class ProjectCostDayJob implements Job {
 
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostDayJob !   时间:" + DateUtils.now(), this.parameter));
-        // 项目人工成本核算
-
-        // 项目成本核算
-
+        try {
+            // 项目人工成本核算
+            projectCostDetailService.initProjectCostDetail(monthStartTime, monthEndTime);
+            // 项目成本核算
+            projectCostCalculateService.initProjectCostCalculate(monthStartTime, monthEndTime);
+        } catch (Exception exception) {
+            log.error("任务 ProjectCostDayJob 异常", exception);
+        }
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey() + "执行完成");
     }
 }

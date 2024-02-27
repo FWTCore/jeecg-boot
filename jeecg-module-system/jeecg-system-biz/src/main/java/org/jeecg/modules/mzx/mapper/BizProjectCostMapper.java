@@ -18,12 +18,5 @@ public interface BizProjectCostMapper extends BaseMapper<BizProjectCost> {
      */
     List<EmployeeProjectCostModel> listEmployeeProjectCost(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
-    /**
-     * 获取员工每个项目费用
-     * @param startTime
-     * @param endTime
-     * @return
-     */
-    List<EmployeeProjectCostModel> listEmployeeEachProjectCost(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 }
 
