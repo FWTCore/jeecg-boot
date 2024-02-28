@@ -14,4 +14,85 @@
                 and #{endTime} > update_time
             )
     </select>
+
+    <insert id="insertProjectCostCalculate">
+        drop temporary table if exists temp_project_cost_calculate;
+        create temporary table temp_project_cost_calculate
+        (
+            `id` VARCHAR(32)  ,
+            `project_id` VARCHAR(32)  ,
+            `project_name` VARCHAR(100),
+            `project_amount` DECIMAL(20,4),
+            `comprehensive_cost` DECIMAL(20,4) ,
+            `project_cost` DECIMAL(20,4),
+            `sale_commission` DECIMAL(20,4) ,
+            `implement_commission` DECIMAL(20,4) ,
+            `cost_ratio` DECIMAL(20,4) ,
+            `super_lifeline` INT  ,
+            `project_status` INT
+        );
+        insert into temp_project_cost_calculate(id, project_id, project_name,project_amount, comprehensive_cost, project_cost, sale_commission,implement_commission, cost_ratio,super_lifeline,project_status)
+        values
+        <foreach collection="dataList" item="data" separator =",">
+            (#{data.id},#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline}},#{data.projectStatus})
+        </foreach>
+        ;
+        INSERT INTO biz_project_cost_calculate
+        (id, project_id, project_name, project_amount, comprehensive_cost, project_cost, sale_commission, implement_commission, cost_ratio, super_lifeline, project_status, del_flag, create_by, created_time, update_by, update_time)
+        select id, project_id, project_name, project_amount, comprehensive_cost, project_cost, sale_commission, implement_commission, cost_ratio, super_lifeline, project_status,0, null, now(), null, now()
+        from temp_project_cost_calculate tep
+        where not exists (
+            select 1
+            from biz_project_cost_calculate bpcc
+            where bpcc.project_id = tep.project_id
+        );
+        drop temporary table if exists temp_project_cost_calculate;
+    </insert>
+
+    <update id="updateProjectCostCalculate">
+        drop temporary table if exists temp_project_cost_calculate;
+        create temporary table temp_project_cost_calculate
+        (
+            `project_id` VARCHAR(32)  ,
+            `project_name` VARCHAR(100),
+            `project_amount` DECIMAL(20,4),
+            `comprehensive_cost` DECIMAL(20,4) ,
+            `project_cost` DECIMAL(20,4),
+            `sale_commission` DECIMAL(20,4) ,
+            `implement_commission` DECIMAL(20,4) ,
+            `cost_ratio` DECIMAL(20,4) ,
+            `super_lifeline` INT  ,
+            `project_status` INT
+        );
+        insert into temp_project_cost_calculate(project_id, project_name,project_amount, comprehensive_cost, project_cost, sale_commission,implement_commission, cost_ratio,super_lifeline,project_status)
+        values
+        <foreach collection="dataList" item="data" separator =",">
+            (#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline}},#{data.projectStatus})
+        </foreach>
+        ;
+        update biz_project_cost_calculate as bpcc
+        inner join temp_project_cost_calculate as tep on bpcc.project_id = tep.project_id
+        set bpcc.project_amount=tep.project_amount,
+            bpcc.comprehensive_cost=tep.comprehensive_cost,
+            bpcc.project_cost=tep.project_cost,
+            bpcc.sale_commission=tep.sale_commission,
+            bpcc.implement_commission=tep.implement_commission,
+            bpcc.cost_ratio=tep.cost_ratio,
+            bpcc.super_lifeline=tep.super_lifeline,
+            bpcc.project_status=tep.project_status,
+            bep.update_time=now()
+        ;
+        drop temporary table if exists temp_project_cost_calculate;
+    </update>
+
+    <select id="listProjectCostDetailSum" resultType="org.jeecg.modules.mzx.model.ProjectCostModel">
+        select project_id                                                         as projectId,
+               ifnull(sum(comprehensive_subsidy), 0) + ifnull(sum(labor_cost), 0) as totalCost
+        from biz_project_cost_detail
+        where project_id in
+            <foreach collection="projectIds" item="projectId" separator="," open="(" close=")">
+                #{projectId}
+            </foreach>
+        group by project_id
+    </select>
 </mapper>

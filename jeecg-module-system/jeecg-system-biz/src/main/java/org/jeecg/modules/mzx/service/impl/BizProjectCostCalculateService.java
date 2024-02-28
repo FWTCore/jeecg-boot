@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jeecg.common.util.DateUtils;
 import org.jeecg.modules.mzx.entity.*;
 import org.jeecg.modules.mzx.mapper.BizProjectCostCalculateMapper;
+import org.jeecg.modules.mzx.model.ProjectCostModel;
 import org.jeecg.modules.mzx.service.IBizProjectCostCalculateService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 项目成本核算
@@ -49,10 +47,10 @@ public class BizProjectCostCalculateService extends ServiceImpl<BizProjectCostCa
         List<BizProject> projectList = listProject(projectIdList);
 
         // 获取指定项目的项目人力成本
-
+        List<ProjectCostModel> projectCostModels = projectCostCalculateMapper.listProjectCostDetailSum(projectIdList);
         List<BizProjectCostCalculate> projectCostCalculates = new ArrayList<>();
         projectList.forEach(project -> {
-            BizProjectCostCalculate tempDate = structureProjectCostCalculate(project);
+            BizProjectCostCalculate tempDate = structureProjectCostCalculate(project, projectCostModels);
             tempDate.setId(UUID.randomUUID().toString().replace("-", ""));
             projectCostCalculates.add(tempDate);
         });
@@ -70,9 +68,10 @@ public class BizProjectCostCalculateService extends ServiceImpl<BizProjectCostCa
      * 构造项目成本核算
      *
      * @param project
+     * @param projectCostModels
      * @return
      */
-    private BizProjectCostCalculate structureProjectCostCalculate(BizProject project) {
+    private BizProjectCostCalculate structureProjectCostCalculate(BizProject project, List<ProjectCostModel> projectCostModels) {
         BizProjectCostCalculate resultData = new BizProjectCostCalculate();
         resultData.setProjectId(project.getId());
         resultData.setProjectName(project.getProjectName());
@@ -89,10 +88,18 @@ public class BizProjectCostCalculateService extends ServiceImpl<BizProjectCostCa
             resultData.setComprehensiveCost(BigDecimal.ZERO);
         }
         // 项目成本=项目人力成本集合
-        resultData.setProjectCost();
+        BigDecimal tempValue = BigDecimal.ZERO;
+        if (CollectionUtil.isNotEmpty(projectCostModels)) {
+            Optional<ProjectCostModel> projectCostOptional = projectCostModels.stream().filter(e -> e.getProjectId().equals(project.getId())).findFirst();
+            if (projectCostOptional.isPresent()) {
+                ProjectCostModel tempProjectCost = projectCostOptional.get();
+                tempValue = tempProjectCost.getTotalCost();
+            }
+        }
+        resultData.setProjectCost(tempValue);
 
         // 项目费用=项目金额-综合费用
-        BigDecimal tempValue = BigDecimal.ZERO;
+        tempValue = BigDecimal.ZERO;
         BigDecimal projectFees = resultData.getProjectAmount().subtract(resultData.getComprehensiveCost());
         // 销售提成=（项目金额-综合费用）* 销售提成比
         if (ObjectUtils.isNotEmpty(project.getSaleCommissionRatio())) {

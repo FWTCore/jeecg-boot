@@ -143,7 +143,15 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
         // 项目补助
         if (CollectionUtil.isNotEmpty(projectCosts)) {
             //获取指定用户，指定项目费用集合
-            List<BizProjectCost> projectCostCollect = projectCosts.stream().filter(e -> e.getStaffId().equals(user.getId()) && e.getProjectId().equals(project.getId())).collect(Collectors.toList());
+            /**
+             * 综合补助=交通+住宿+餐补+其他
+             * 交通补助  CostKey:2
+             * 住宿补助 CostKey:10
+             * 餐费  CostKey:3
+             * 其他费用 CostKey:4
+             */
+            List<String> costKeyList = Arrays.asList("2", "10", "3", "4");
+            List<BizProjectCost> projectCostCollect = projectCosts.stream().filter(e -> e.getStaffId().equals(user.getId()) && e.getProjectId().equals(project.getId()) && costKeyList.contains(e.getCostKey())).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(projectCostCollect)) {
                 resultData.setComprehensiveSubsidy(projectCostCollect.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
             } else {
@@ -159,8 +167,26 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             if (employeeSalaryOptional.isPresent()) {
                 BizEmployeeSalary bizEmployeeSalary = employeeSalaryOptional.get();
                 if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getSalary())) {
+                    //综合薪资=基本工资+社保+公积金+项目补助
+                    BigDecimal totalSalary = BigDecimal.ZERO;
+                    if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getSalary())) {
+                        totalSalary = totalSalary.add(bizEmployeeSalary.getSalary());
+                    }
+                    if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getSocialInsurance())) {
+                        totalSalary = totalSalary.add(bizEmployeeSalary.getSocialInsurance());
+                    }
+                    if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getAccumulationFund())) {
+                        totalSalary = totalSalary.add(bizEmployeeSalary.getAccumulationFund());
+                    }
+                    if (CollectionUtil.isNotEmpty(projectCosts)) {
+                        // 指定用户 指定项目 的 项目补助 key:1
+                        List<BizProjectCost> tempCollect = projectCosts.stream().filter(e -> e.getStaffId().equals(user.getId()) && e.getProjectId().equals(project.getId()) && e.getCostKey().equals("1")).collect(Collectors.toList());
+                        if (CollectionUtil.isNotEmpty(tempCollect)) {
+                            totalSalary = totalSalary.add(tempCollect.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
+                        }
+                    }
                     // 除以固定22天，计算每天的薪资，保留2位小数，四舍五入
-                    perDaySalary = bizEmployeeSalary.getSalary().divide(new BigDecimal(22), 2, RoundingMode.HALF_UP);
+                    perDaySalary = totalSalary.divide(new BigDecimal(22), 2, RoundingMode.HALF_UP);
                 }
             }
         }
