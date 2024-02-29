@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -67,7 +69,7 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         this.save(projectEntity);
 
         LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        ProjectScheduleUsageDTO projectScheduleUsageDTO=new ProjectScheduleUsageDTO();
+        ProjectScheduleUsageDTO projectScheduleUsageDTO = new ProjectScheduleUsageDTO();
         projectScheduleUsageDTO.setProjectId(projectEntity.getId());
         projectScheduleUsageDTO.setProjectScheduleTemplateId(projectVO.getProjectScheduleTemplateId());
         projectScheduleUsageDTO.setUserName(sysUser.getRealname());
@@ -76,5 +78,14 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         projectScheduleItemUsageMapper.CreateScheduleItemUsage(projectScheduleUsageDTO);
         return projectVO;
 
+    }
+
+    @Override
+    public void updateProjectPayment(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        projectMapper.updateProjectPayment(ids, user.getRealname());
     }
 }

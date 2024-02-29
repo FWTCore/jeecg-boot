@@ -75,8 +75,8 @@ public class ProjectScheduleController {
         Result<IPage<BizProjectScheduleLog>> result = new Result<IPage<BizProjectScheduleLog>>();
         LambdaQueryWrapper<BizProjectScheduleLog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BizProjectScheduleLog::getDelFlag, CommonConstant.DEL_FLAG_0);
-        if (ObjectUtil.isNotNull(serviceLog.getProjectId())) {
-            queryWrapper.like(BizProjectScheduleLog::getProjectId, serviceLog.getProjectId());
+        if (ObjectUtil.isNotNull(serviceLog.getProjectName())) {
+            queryWrapper.like(BizProjectScheduleLog::getProjectName, serviceLog.getProjectName());
         }
         if (ObjectUtil.isNotNull(serviceLog.getScheduleName())) {
             queryWrapper.like(BizProjectScheduleLog::getScheduleName, serviceLog.getScheduleName());

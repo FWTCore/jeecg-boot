@@ -237,6 +237,23 @@ public class ProjectController {
         return Result.ok();
     }
 
+    /**
+     * @param ids
+     * @return
+     * @功能：批量回款
+     */
+    @ApiOperation("批量回款")
+    @RequestMapping(value = "/paymentBatch", method = RequestMethod.POST)
+    public Result<String> paymentBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<String> result = new Result<String>();
+        if (oConvertUtils.isEmpty(ids)) {
+            result.error500("参数不识别！");
+        } else {
+            projectService.updateProjectPayment(Arrays.asList(ids.split(",")));
+            result.success("回款成功!");
+        }
+        return result;
+    }
 
     @RequestMapping(value = "/queryall", method = RequestMethod.GET)
     public Result<List<BizProject>> queryall(@RequestParam(name = "remedy", required = false) Boolean remedy) {

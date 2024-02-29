@@ -2,5 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectMapper">
 
-
+    <update id="updateProjectPayment">
+        update biz_project
+        set project_status=20,
+            update_by=#{userName}
+        where id in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+          and project_status='10'
+    </update>
 </mapper>
