@@ -5,7 +5,8 @@
     <update id="updateProjectPayment">
         update biz_project
         set project_status=20,
-            update_by=#{userName}
+            update_by=#{userName},
+            update_time=now()
         where id in
             <foreach collection="ids" item="id" separator="," open="(" close=")">
                 #{id}

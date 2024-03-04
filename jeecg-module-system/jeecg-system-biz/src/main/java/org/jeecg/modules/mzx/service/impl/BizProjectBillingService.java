@@ -1,12 +1,16 @@
 package org.jeecg.modules.mzx.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
 import org.jeecg.modules.mzx.mapper.BizProjectBillingMapper;
+import org.jeecg.modules.mzx.model.BizProjectBillingModel;
 import org.jeecg.modules.mzx.service.IBizProjectBillingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 项目结算
@@ -23,5 +27,16 @@ public class BizProjectBillingService extends ServiceImpl<BizProjectBillingMappe
     private BizProjectBillingMapper projectBillingMapper;
 
 
+    @Override
+    public List<BizProjectBillingModel> listBizProjectBillingModel() {
+        return projectBillingMapper.listBizProjectBillingModel();
+    }
 
+    @Override
+    public void batchInsertBizProjectBilling(List<BizProjectBillingModel> data) {
+        if(CollectionUtil.isEmpty(data)){
+            return;
+        }
+
+    }
 }

@@ -41,10 +41,6 @@ public class BizProjectBilling implements Serializable {
      */
     private BigDecimal implementCommission;
     /**
-     * 是否回款
-     */
-    private Short hasPayment;
-    /**
      * 负责id
      */
     private String leaderId;

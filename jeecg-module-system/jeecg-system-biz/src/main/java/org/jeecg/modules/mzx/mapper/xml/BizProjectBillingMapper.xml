@@ -2,6 +2,50 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectBillingMapper">
 
+    <select id="listBizProjectBillingModel" resultType="org.jeecg.modules.mzx.model.BizProjectBillingModel">
+        select bp.id as projectId,
+               bp.project_name,
+               bp.leader_id,
+               bp.leader_name,
+               (ifnull(bp.contract_amount, 0) - ifnull(bp.comprehensive_cost, 0)) * ifnull(bp.implement_commission_ratio, 0) / 100 as implementCommission
+        from biz_project as bp
+        where project_status = 20
+          and del_flag = 0
+          and not exists(
+                select 1
+                from biz_project_billing as bpb
+                where bp.id = bpb.project_id
+                  and bpb.del_flag = 0
+            )
+    </select>
 
+    <insert id="batchInsertBizProjectBilling">
+        drop temporary table if exists temp_project_billing;
+        create temporary table temp_project_billing
+        (
+            project_id           varchar(32),
+            project_name         varchar(100),
+            implement_commission decimal(20, 4),
+            leader_id            varchar(32),
+            leader_name          varchar(100)
+        );
+        insert into temp_project_billing(project_id, project_name,implement_commission, leader_id, leader_name)
+        values
+        <foreach collection="dataList" item="data" separator =",">
+            (#{data.projectId},#{data.projectName},#{implementCommission},#{data.leaderId},#{data.leaderName})
+        </foreach>
+        ;
+        INSERT INTO biz_project_billing
+        (id, project_id, project_name, implement_commission, leader_id, leader_name, billing_status, del_flag, create_by, created_time, update_by, update_time)
+        select replace(uuid(), '-', ''), project_id, project_name, implement_commission, leader_id, leader_name, 1, 0, null, now(), null, now()
+        from temp_project_billing tep
+        where not exists (
+            select 1
+            from biz_project_billing bpcc
+            where bpcc.project_id = tep.project_id
+            and bpcc.del_flag=0
+        );
+        drop temporary table if exists temp_project_billing;
 
+    </insert>
 </mapper>

@@ -1,7 +1,11 @@
 package org.jeecg.modules.mzx.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
+import org.jeecg.modules.mzx.model.BizProjectBillingModel;
+
+import java.util.List;
 
 /**
  * 项目结算
@@ -12,5 +16,16 @@ import org.jeecg.modules.mzx.entity.BizProjectBilling;
 
 public interface BizProjectBillingMapper extends BaseMapper<BizProjectBilling> {
 
+
+    /**
+     * 获取需要结算的项目数据
+     * @return
+     */
+    List<BizProjectBillingModel> listBizProjectBillingModel();
+    /**
+     * 批量插入项目结算
+     * @param dataList
+     */
+    void batchInsertBizProjectBilling(@Param("dataList") List<BizProjectBillingModel> dataList);
 
 }

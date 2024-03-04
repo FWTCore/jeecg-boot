@@ -1,5 +1,7 @@
 package org.jeecg.modules.mzx.service;
 
+import java.util.List;
+
 /**
  * 项目结算明细
  *
@@ -8,4 +10,11 @@ package org.jeecg.modules.mzx.service;
  */
 
 public interface IBizProjectBillingDetailService {
+
+
+    /**
+     * 生成指定项目结算明细
+     * @param projectIds
+     */
+    void generateProjectBillingDetail(List<String> projectIds);
 }
