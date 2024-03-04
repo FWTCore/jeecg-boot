@@ -76,7 +76,7 @@ public class ProjectController {
         Result<ProjectVO> result = new Result<ProjectVO>();
         try {
             BizProjectScheduleTemplate template = projectScheduleTemplateService.getById(projectVO.getProjectScheduleTemplateId());
-            if (template == null || template.getDelFlag().equals(CommonConstant.DEL_FLAG_1) || template.getStatus().equals("0")) {
+            if (template == null || template.getDelFlag().equals(CommonConstant.DEL_FLAG_1) || template.getStatus().equals(0)) {
                 throw new JeecgBootException("项目进度模板不存在");
             }
             BizCustomer customerEntity = customerService.getById(projectVO.getCustomerId());

@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -77,5 +78,10 @@ public class BizProjectScheduleItemUsage implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 提成占比
+     */
+    private BigDecimal commission;
 
 }
