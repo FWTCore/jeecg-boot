@@ -1,6 +1,10 @@
 package org.jeecg.modules.mzx.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
+import org.jeecg.modules.mzx.entity.BizProjectBilling;
 import org.jeecg.modules.mzx.model.BizProjectBillingModel;
+import org.jeecg.modules.mzx.model.BizProjectBillingVO;
 
 import java.util.List;
 
@@ -11,7 +15,7 @@ import java.util.List;
  * @date 2024/3/4
  */
 
-public interface IBizProjectBillingService {
+public interface IBizProjectBillingService extends IService<BizProjectBilling> {
 
 
     /**
@@ -26,5 +30,12 @@ public interface IBizProjectBillingService {
      */
     void batchInsertBizProjectBilling(List<BizProjectBillingModel> data);
 
-
+    /**
+     *
+     * @param projectBilling
+     * @param pageSize
+     * @param pageNo
+     * @return
+     */
+    IPage<BizProjectBillingVO> pageProjectBilling(BizProjectBilling projectBilling, Integer pageSize, Integer pageNo);
 }

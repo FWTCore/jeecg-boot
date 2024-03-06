@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.exception.JeecgBootException;
@@ -243,8 +244,9 @@ public class ProjectController {
      * @功能：批量回款
      */
     @ApiOperation("批量回款")
-    @RequestMapping(value = "/paymentBatch", method = RequestMethod.POST)
-    public Result<String> paymentBatch(@RequestParam(name = "ids", required = true) String ids) {
+    @RequiresPermissions("project:billing")
+    @RequestMapping(value = "/billingBatch", method = RequestMethod.POST)
+    public Result<String> billingBatch(@RequestParam(name = "ids", required = true) String ids) {
         Result<String> result = new Result<String>();
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");

@@ -1,11 +1,13 @@
 package org.jeecg.modules.mzx.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
 import org.jeecg.modules.mzx.mapper.BizProjectBillingMapper;
 import org.jeecg.modules.mzx.model.BizProjectBillingModel;
+import org.jeecg.modules.mzx.model.BizProjectBillingVO;
 import org.jeecg.modules.mzx.service.IBizProjectBillingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,5 +40,10 @@ public class BizProjectBillingService extends ServiceImpl<BizProjectBillingMappe
             return;
         }
 
+    }
+
+    @Override
+    public IPage<BizProjectBillingVO> pageProjectBilling(BizProjectBilling projectBilling, Integer pageSize, Integer pageNo) {
+        return null;
     }
 }
