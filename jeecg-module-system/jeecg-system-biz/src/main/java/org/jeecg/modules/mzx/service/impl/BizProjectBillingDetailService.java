@@ -30,6 +30,6 @@ public class BizProjectBillingDetailService extends ServiceImpl<BizProjectBillin
         if(CollectionUtil.isEmpty(projectIds)){
             return;
         }
-
+        projectBillingDetailMapper.generateProjectBillingDetail(projectIds);
     }
 }

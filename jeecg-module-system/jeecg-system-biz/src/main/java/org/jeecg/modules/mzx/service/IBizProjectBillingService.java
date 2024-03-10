@@ -1,6 +1,7 @@
 package org.jeecg.modules.mzx.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
 import org.jeecg.modules.mzx.model.BizProjectBillingModel;
@@ -32,10 +33,9 @@ public interface IBizProjectBillingService extends IService<BizProjectBilling> {
 
     /**
      *
-     * @param projectBilling
-     * @param pageSize
-     * @param pageNo
+     * @param page
+     * @param query
      * @return
      */
-    IPage<BizProjectBillingVO> pageProjectBilling(BizProjectBilling projectBilling, Integer pageSize, Integer pageNo);
+    IPage<BizProjectBillingVO> pageProjectBilling(Page<BizProjectBilling> page, BizProjectBilling query);
 }

@@ -1,20 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectBillingDetailMapper">
-
     <insert id="generateProjectBillingDetail">
         INSERT INTO biz_project_billing_detail
-        (id, project_id, project_name, project_schedule_usage_item_id, schedule_name, staff_id, staff,
-         commission, del_flag, create_by, created_time, update_by, update_time)
-        select distinct replace(uuid(), '-', ''), project_id,project_name,project_schedule_usage_item_id,schedule_name,staff_id,staff,
-                        0,0,null,now(),0,null,now()
-        from biz_project_schedule_log
-        where del_flag = 0
-        and project_id in 
-            <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
-                #{projectId}
-            </foreach>
-
-
+        (id, project_id, project_name, project_schedule_usage_item_id, schedule_name,
+        staff_id, staff, commission, service_flag, del_flag, create_by,
+        created_time, update_by, update_time)
+        select distinct replace(uuid(), '-', ''),
+            projectSchedule.project_id,projectStaff.project_name,
+            projectSchedule.project_schedule_usage_item_id,projectSchedule.item_name as schedule_name,
+            projectStaff.staff_id,projectStaff.staff,
+            0 as commission,
+            IF(projectSchedule.project_schedule_usage_item_id = projectStaff.project_schedule_usage_item_id, 1,0) as service_flag,
+            0,null,now(),null,now()
+        from (
+            select bpsiu.project_id,
+                bpsiu.id as project_schedule_usage_item_id,
+                bpsiu.item_name,
+                bpsiu.sort_order
+            from biz_project_schedule_item_usage as bpsiu
+            where bpsiu.id in
+                <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
+                    #{projectId}
+                </foreach>
+        ) as projectSchedule
+        inner join
+        (
+            select project_id,
+                project_name,
+                project_schedule_usage_item_id,
+                staff_id,
+                staff
+            from biz_project_schedule_log
+            where del_flag = 0 and project_id in
+                <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
+                    #{projectId}
+                </foreach>
+        ) as projectStaff on projectSchedule.project_id = projectStaff.project_id
     </insert>
 </mapper>

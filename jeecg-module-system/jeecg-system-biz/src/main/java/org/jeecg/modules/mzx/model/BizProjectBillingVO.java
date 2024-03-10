@@ -47,10 +47,6 @@ public class BizProjectBillingVO  implements Serializable {
     @Dict(dicCode = "project_billing_status")
     private Integer billingStatus;
     /**
-     * 参与人id
-     */
-    private String participantsId;
-    /**
      * 参与人
      */
     private String participants;

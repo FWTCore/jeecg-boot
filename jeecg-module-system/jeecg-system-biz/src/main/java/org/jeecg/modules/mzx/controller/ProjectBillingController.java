@@ -44,11 +44,15 @@ public class ProjectBillingController {
     public Result<IPage<BizProjectBillingVO>> queryPageList(BizProjectBilling projectBilling, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                             @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizProjectBillingVO>> result = new Result<IPage<BizProjectBillingVO>>();
-        IPage<BizProjectBillingVO> pageList = projectBillingService.pageProjectBilling(projectBilling, pageSize, pageNo);
+        Page<BizProjectBilling> bizProjectBillingPage = new Page<>(pageNo, pageSize);
+        IPage<BizProjectBillingVO> pageList = projectBillingService.pageProjectBilling(bizProjectBillingPage, projectBilling);
         result.setSuccess(true);
         result.setResult(pageList);
         return result;
     }
+
+
+
 
 
 }

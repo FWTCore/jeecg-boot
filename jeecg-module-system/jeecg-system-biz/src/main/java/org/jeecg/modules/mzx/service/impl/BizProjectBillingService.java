@@ -2,6 +2,7 @@ package org.jeecg.modules.mzx.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
@@ -36,14 +37,14 @@ public class BizProjectBillingService extends ServiceImpl<BizProjectBillingMappe
 
     @Override
     public void batchInsertBizProjectBilling(List<BizProjectBillingModel> data) {
-        if(CollectionUtil.isEmpty(data)){
+        if (CollectionUtil.isEmpty(data)) {
             return;
         }
-
+        projectBillingMapper.batchInsertBizProjectBilling(data);
     }
 
     @Override
-    public IPage<BizProjectBillingVO> pageProjectBilling(BizProjectBilling projectBilling, Integer pageSize, Integer pageNo) {
-        return null;
+    public IPage<BizProjectBillingVO> pageProjectBilling(Page<BizProjectBilling> page, BizProjectBilling query) {
+        return projectBillingMapper.pageProjectBilling(page, query);
     }
 }

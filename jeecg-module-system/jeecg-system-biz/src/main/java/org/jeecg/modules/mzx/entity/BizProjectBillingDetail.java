@@ -56,6 +56,10 @@ public class BizProjectBillingDetail implements Serializable {
      */
     private BigDecimal commission;
     /**
+     * 服务标记
+     */
+    private Boolean serviceFlag;
+    /**
      * 是否删除
      */
     @TableLogic
