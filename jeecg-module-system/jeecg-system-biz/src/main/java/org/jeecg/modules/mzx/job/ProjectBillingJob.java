@@ -54,17 +54,17 @@ public class ProjectBillingJob implements Job {
             if (CollectionUtil.isEmpty(bizProjectBillingModels)) {
                 log.info("ProjectBillingJob 无数据处理 !   时间:" + DateUtils.now());
             }
-            // 生成项目结算数据
-            bizProjectBillingService.batchInsertBizProjectBilling(bizProjectBillingModels);
-            // 获取项目id
-            List<String> projectIdCollect = bizProjectBillingModels.stream().map(BizProjectBillingModel::getProjectId).collect(Collectors.toList());
-            // 生成项目结算明细
-            bizProjectBillingDetailService.generateProjectBillingDetail(projectIdCollect);
-            // 扭转项目状态为结算中	25
-            projectService.updateProjectBilling(projectIdCollect);
-            // TODO 推送消息
-
-
+            else {
+                // 生成项目结算数据
+                bizProjectBillingService.batchInsertBizProjectBilling(bizProjectBillingModels);
+                // 获取项目id
+                List<String> projectIdCollect = bizProjectBillingModels.stream().map(BizProjectBillingModel::getProjectId).collect(Collectors.toList());
+                // 生成项目结算明细
+                bizProjectBillingDetailService.generateProjectBillingDetail(projectIdCollect);
+                // 扭转项目状态为结算中	25
+                projectService.updateProjectBilling(projectIdCollect);
+                // TODO 推送消息
+            }
         } catch (Exception exception) {
             log.error("任务 ProjectCostDayJob 异常", exception);
         }

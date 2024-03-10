@@ -32,7 +32,7 @@
         insert into temp_project_billing(project_id, project_name,implement_commission, leader_id, leader_name)
         values
         <foreach collection="dataList" item="data" separator =",">
-            (#{data.projectId},#{data.projectName},#{implementCommission},#{data.leaderId},#{data.leaderName})
+            (#{data.projectId},#{data.projectName},#{data.implementCommission},#{data.leaderId},#{data.leaderName})
         </foreach>
         ;
         INSERT INTO biz_project_billing
@@ -59,7 +59,7 @@
                billing_status,
                update_by,
                update_time,
-               (select group_concat(staff)
+               (select group_concat(distinct staff)
                 from biz_project_billing_detail as bpbd
                 where bpbd.project_id = bpb.project_id) as participants
         from biz_project_billing as bpb

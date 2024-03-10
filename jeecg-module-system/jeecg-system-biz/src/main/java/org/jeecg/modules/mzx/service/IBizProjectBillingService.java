@@ -43,7 +43,6 @@ public interface IBizProjectBillingService extends IService<BizProjectBilling> {
     /**
      * 更新项目提成状态为已完成
      * @param ids
-     * @param userName
      */
     void updateProjectBillingFinish(List<String> ids);
 }

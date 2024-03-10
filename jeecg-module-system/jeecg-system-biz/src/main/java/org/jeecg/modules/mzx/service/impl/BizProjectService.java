@@ -94,8 +94,7 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         if (CollectionUtil.isEmpty(ids)) {
             return;
         }
-        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        projectMapper.updateProjectBilling(ids, user.getRealname());
+        projectMapper.updateProjectBilling(ids, "job");
     }
     @Override
     public void updateProjectFinish(List<String> ids) {

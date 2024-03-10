@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.mapper;
 
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -32,6 +33,7 @@ public interface BizProjectBillingMapper extends BaseMapper<BizProjectBilling> {
      *
      * @param dataList
      */
+    @InterceptorIgnore(tenantLine = "true")
     void batchInsertBizProjectBilling(@Param("dataList") List<BizProjectBillingModel> dataList);
 
     /**

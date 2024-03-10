@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.mapper;
 
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.jeecg.modules.mzx.entity.BizProjectCostCalculate;
@@ -45,6 +46,7 @@ public interface BizProjectCostCalculateMapper extends BaseMapper<BizProjectCost
      *
      * @param dataList
      */
+    @InterceptorIgnore(tenantLine = "true")
     void insertProjectCostCalculate(@Param("dataList") List<BizProjectCostCalculate> dataList);
 
     /**
@@ -52,6 +54,7 @@ public interface BizProjectCostCalculateMapper extends BaseMapper<BizProjectCost
      *
      * @param dataList
      */
+    @InterceptorIgnore(tenantLine = "true")
     void updateProjectCostCalculate(@Param("dataList") List<BizProjectCostCalculate> dataList);
 
 }
