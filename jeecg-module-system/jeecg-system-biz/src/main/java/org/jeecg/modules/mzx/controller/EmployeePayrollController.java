@@ -18,7 +18,10 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizEmployeePayroll;
 import org.jeecg.modules.mzx.entity.BizEmployeeSalary;
+import org.jeecg.modules.mzx.entity.BizProjectBillingCommission;
+import org.jeecg.modules.mzx.model.OwnPayrollVO;
 import org.jeecg.modules.mzx.service.IBizEmployeePayrollService;
+import org.jeecg.modules.mzx.service.IBizProjectBillingCommissionService;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +29,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 员工工资
@@ -49,6 +50,8 @@ public class EmployeePayrollController {
     private IBizEmployeePayrollService bizEmployeePayrollService;
     @Autowired
     private ISysUserService sysUserService;
+    @Autowired
+    private IBizProjectBillingCommissionService bizProjectBillingCommissionService;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -267,6 +270,85 @@ public class EmployeePayrollController {
             comprehensivePayroll = comprehensivePayroll.add(employeePayroll.getProjectSubsidy());
         }
         return comprehensivePayroll;
+    }
+
+
+    @ApiOperation("获取员工自己工资列表")
+    @RequestMapping(value = "/ownList", method = RequestMethod.GET)
+    public Result<IPage<OwnPayrollVO>> queryOwnPageList(BizEmployeePayroll payroll, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
+        Result<IPage<OwnPayrollVO>> result = new Result<IPage<OwnPayrollVO>>();
+        payroll.setPeriod(payroll.generationPeriod());
+        QueryWrapper<BizEmployeePayroll> queryWrapper = QueryGenerator.initQueryWrapper(payroll, req.getParameterMap());
+
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        queryWrapper.eq("employee_id", user.getId());
+        queryWrapper.orderByDesc("period").orderByDesc("update_time");
+        Page<BizEmployeePayroll> page = new Page<BizEmployeePayroll>(pageNo, pageSize);
+        IPage<BizEmployeePayroll> pageList = bizEmployeePayrollService.page(page, queryWrapper);
+
+        List<BizEmployeePayroll> records = pageList.getRecords();
+        IPage<OwnPayrollVO> resultData = new Page<>();
+        resultData.setCurrent(pageList.getCurrent());
+        resultData.setPages(pageList.getPages());
+        resultData.setSize(pageList.getSize());
+        resultData.setTotal(pageList.getTotal());
+        if (CollectionUtil.isNotEmpty(records)) {
+            List<Integer> periodList = records.stream().map(BizEmployeePayroll::getPeriod).collect(Collectors.toList());
+
+            LambdaQueryWrapper<BizProjectBillingCommission> bizProjectBillingCommissionLambdaQueryWrapper = new LambdaQueryWrapper<BizProjectBillingCommission>();
+            bizProjectBillingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getStaffId, user.getId());
+            bizProjectBillingCommissionLambdaQueryWrapper.in(BizProjectBillingCommission::getPeriod, periodList);
+            bizProjectBillingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getDelFlag, CommonConstant.DEL_FLAG_0);
+            List<BizProjectBillingCommission> projectBillingCommissionList = bizProjectBillingCommissionService.list(bizProjectBillingCommissionLambdaQueryWrapper);
+            Map<Integer, BigDecimal> commissionByPeriod = new HashMap<>();
+            if (CollectionUtil.isNotEmpty(projectBillingCommissionList)) {
+                commissionByPeriod = projectBillingCommissionList.stream()
+                        .collect(Collectors.groupingBy(BizProjectBillingCommission::getPeriod,
+                                Collectors.reducing(BigDecimal.ZERO, BizProjectBillingCommission::getImplementCommission, BigDecimal::add)));
+
+
+            }
+            Map<Integer, BigDecimal> finalCommissionByPeriod = commissionByPeriod;
+
+            List<OwnPayrollVO> resultRecords = new ArrayList<>();
+            records.forEach(data -> {
+                OwnPayrollVO temp = new OwnPayrollVO();
+                temp.setEmployeeId(data.getEmployeeId());
+                temp.setEmployeeName(data.getEmployeeName());
+                temp.setSalary(data.getSalary());
+                temp.setSocialInsurance(data.getSocialInsurance());
+                temp.setAccumulationFund(data.getAccumulationFund());
+
+                temp.setCollectProjectSubsidy(data.getCollectProjectSubsidy());
+                temp.setProjectSubsidy(data.getProjectSubsidy());
+                temp.setProjectSubsidyRemark(data.getProjectSubsidyRemark());
+
+                temp.setCollectTrafficSubsidy(data.getCollectTrafficSubsidy());
+                temp.setTrafficSubsidy(data.getTrafficSubsidy());
+                temp.setTrafficSubsidyRemark(data.getTrafficSubsidyRemark());
+
+                temp.setCollectAccommodationSubsidy(data.getCollectAccommodationSubsidy());
+                temp.setAccommodationSubsidy(data.getAccommodationSubsidy());
+                temp.setAccommodationSubsidyRemark(data.getAccommodationSubsidyRemark());
+
+                temp.setCollectDiningSubsidy(data.getCollectDiningSubsidy());
+                temp.setDiningSubsidy(data.getDiningSubsidy());
+                temp.setDiningSubsidyRemark(data.getDiningSubsidyRemark());
+
+                temp.setCollectOtherSubsidy(data.getCollectOtherSubsidy());
+                temp.setOtherSubsidy(data.getOtherSubsidy());
+                temp.setOtherSubsidyRemark(data.getOtherSubsidyRemark());
+
+                temp.setPeriod(data.getPeriod());
+                temp.setImplementCommission(finalCommissionByPeriod.get(data.getPeriod()));
+                resultRecords.add(temp);
+            });
+            resultData.setRecords(resultRecords);
+        }
+        result.setSuccess(true);
+        result.setResult(resultData);
+        return result;
     }
 
 }

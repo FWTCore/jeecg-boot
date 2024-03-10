@@ -11,10 +11,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.exception.JeecgBootException;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.*;
 import org.jeecg.modules.mzx.model.BizProjectBillingVO;
@@ -76,27 +78,29 @@ public class ProjectBillingController {
             bizProjectScheduleItemUsageLambdaQueryWrapper.eq(BizProjectScheduleItemUsage::getProjectId, projectId);
             List<BizProjectScheduleItemUsage> scheduleItemList = projectScheduleItemUsageService.list(bizProjectScheduleItemUsageLambdaQueryWrapper);
 
-            LambdaQueryWrapper<BizProjectBillingDetail> bizProjectBillingLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            bizProjectBillingLambdaQueryWrapper.eq(BizProjectBillingDetail::getProjectId, projectId);
-            bizProjectBillingLambdaQueryWrapper.eq(BizProjectBillingDetail::getDelFlag, CommonConstant.DEL_FLAG_0);
-            List<BizProjectBillingDetail> projectBillingDetailList = bizProjectBillingDetailService.list(bizProjectBillingLambdaQueryWrapper);
-            if (CollectionUtil.isNotEmpty(scheduleItemList) && CollectionUtils.isNotEmpty(projectBillingDetailList)) {
+            if (CollectionUtil.isNotEmpty(scheduleItemList)) {
+                LambdaQueryWrapper<BizProjectBillingDetail> bizProjectBillingLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                bizProjectBillingLambdaQueryWrapper.eq(BizProjectBillingDetail::getProjectId, projectId);
+                bizProjectBillingLambdaQueryWrapper.eq(BizProjectBillingDetail::getDelFlag, CommonConstant.DEL_FLAG_0);
+                List<BizProjectBillingDetail> projectBillingDetailList = bizProjectBillingDetailService.list(bizProjectBillingLambdaQueryWrapper);
+
                 scheduleItemList.sort(Comparator.comparingInt(BizProjectScheduleItemUsage::getSortOrder));
                 scheduleItemList.forEach(scheduleItem -> {
                     JSONObject json = new JSONObject();
-
-                    List<BizProjectBillingDetail> projectBillingDetails = projectBillingDetailList.stream().filter(e -> e.getProjectScheduleUsageItemId().equals(scheduleItem.getId())).collect(Collectors.toList());
 
                     json.put("projectId", scheduleItem.getProjectId());
                     json.put("projectScheduleUsageItemId", scheduleItem.getId());
                     json.put("scheduleName", scheduleItem.getItemName());
                     json.put("itemCommission", scheduleItem.getCommission());
 
-                    projectBillingDetails.sort(Comparator.comparing(BizProjectBillingDetail::getId));
-                    projectBillingDetails.forEach(detail -> {
-                        json.put("commission_" + detail.getStaffId(), detail.getCommission());
-                        json.put("serviceFlag_" + detail.getStaffId(), detail.getServiceFlag());
-                    });
+                    if (CollectionUtil.isNotEmpty(projectBillingDetailList)) {
+                        List<BizProjectBillingDetail> projectBillingDetails = projectBillingDetailList.stream().filter(e -> e.getProjectScheduleUsageItemId().equals(scheduleItem.getId())).collect(Collectors.toList());
+                        projectBillingDetails.sort(Comparator.comparing(BizProjectBillingDetail::getId));
+                        projectBillingDetails.forEach(detail -> {
+                            json.put("commission_" + detail.getStaffId(), detail.getCommission());
+                            json.put("serviceFlag_" + detail.getStaffId(), detail.getServiceFlag());
+                        });
+                    }
                     result.add(json);
                 });
             }
@@ -248,6 +252,23 @@ public class ProjectBillingController {
         result.success("发放成功!");
         return result;
     }
+
+    @ApiOperation("获取员工提成明细列表")
+    @GetMapping(value = "/ownDetailList")
+    public Result<List<BizProjectBillingCommission>> ownDetailList(@RequestParam("period") Integer period) {
+        List<BizProjectBillingCommission> result = new ArrayList<>();
+        if (ObjectUtils.isNotEmpty(period)) {
+            LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            LambdaQueryWrapper<BizProjectBillingCommission> billingCommissionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            billingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getPeriod, period);
+            billingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getStaffId, user.getId());
+            billingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getDelFlag, CommonConstant.DEL_FLAG_0);
+            result = bizProjectBillingCommissionService.list(billingCommissionLambdaQueryWrapper);
+        }
+        return Result.ok(result);
+    }
+
+
 
 
 }
