@@ -42,4 +42,12 @@ public interface BizProjectBillingMapper extends BaseMapper<BizProjectBilling> {
      * @return
      */
     IPage<BizProjectBillingVO> pageProjectBilling(Page<BizProjectBilling> page, @Param("query") BizProjectBilling query);
+
+
+    /**
+     * 更新项目提成状态为已完成
+     * @param ids
+     * @param userName
+     */
+    void updateProjectBillingFinish(@Param("ids") List<String> ids,@Param("userName") String userName);
 }

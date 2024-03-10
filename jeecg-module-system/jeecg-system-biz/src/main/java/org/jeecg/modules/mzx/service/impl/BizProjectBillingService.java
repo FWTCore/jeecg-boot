@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.modules.mzx.entity.BizProjectBilling;
 import org.jeecg.modules.mzx.mapper.BizProjectBillingMapper;
 import org.jeecg.modules.mzx.model.BizProjectBillingModel;
@@ -46,5 +48,14 @@ public class BizProjectBillingService extends ServiceImpl<BizProjectBillingMappe
     @Override
     public IPage<BizProjectBillingVO> pageProjectBilling(Page<BizProjectBilling> page, BizProjectBilling query) {
         return projectBillingMapper.pageProjectBilling(page, query);
+    }
+
+    @Override
+    public void updateProjectBillingFinish(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        projectBillingMapper.updateProjectBillingFinish(ids, user.getRealname());
     }
 }

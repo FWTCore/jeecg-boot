@@ -2,6 +2,36 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectBillingCommissionMapper">
 
+    <insert id="generateProjectBillingCommission">
+        insert into biz_project_billing_commission(id, project_id, project_name, staff_id, staff, commission_ratio,implement_commission,
+                                                   del_flag, create_by, created_time, update_by,update_time)
 
+        select distinct replace(uuid(), '-', ''),
+                        bpb.project_id,
+                        max(bpb.project_name)                                            as project_name,
+                        bpbd.staff_id,
+                        max(bpbd.staff)                                                  as staff,
+                        sum(ifnull(bpbd.commission, 0))                                  as commission_ratio,
+                        bpb.implement_commission * sum(ifnull(bpbd.commission, 0)) / 100 as implement_commission,
+                        0,null,now(),null,now()
+        from biz_project_billing as bpb
+                 inner join biz_project_billing_detail as bpbd on bpb.project_id = bpbd.project_id
+        where bpb.project_id = #{projectId}
+          and bpb.del_flag = 0
+          and bpb.billing_status = 20
+        group by bpb.project_id, bpbd.staff_id
+    </insert>
 
+    <update id="updateProjectBillingCommissionFinish">
+
+        update biz_project_billing_commission
+        set `period`=#{period},
+        `payment_time`=#{paymentTime},
+        update_by=#{userName},
+        update_time=now()
+        where project_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

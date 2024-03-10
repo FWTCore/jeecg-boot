@@ -6,6 +6,7 @@ import org.jeecg.common.util.DateUtils;
 import org.jeecg.modules.mzx.model.BizProjectBillingModel;
 import org.jeecg.modules.mzx.service.IBizProjectBillingDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectBillingService;
+import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -40,6 +41,8 @@ public class ProjectBillingJob implements Job {
     private IBizProjectBillingService bizProjectBillingService;
     @Autowired
     private IBizProjectBillingDetailService bizProjectBillingDetailService;
+    @Autowired
+    private IBizProjectService projectService;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -48,7 +51,7 @@ public class ProjectBillingJob implements Job {
         try {
 
             List<BizProjectBillingModel> bizProjectBillingModels = bizProjectBillingService.listBizProjectBillingModel();
-            if(CollectionUtil.isEmpty(bizProjectBillingModels)){
+            if (CollectionUtil.isEmpty(bizProjectBillingModels)) {
                 log.info("ProjectBillingJob 无数据处理 !   时间:" + DateUtils.now());
             }
             // 生成项目结算数据
@@ -57,8 +60,9 @@ public class ProjectBillingJob implements Job {
             List<String> projectIdCollect = bizProjectBillingModels.stream().map(BizProjectBillingModel::getProjectId).collect(Collectors.toList());
             // 生成项目结算明细
             bizProjectBillingDetailService.generateProjectBillingDetail(projectIdCollect);
+            // 扭转项目状态为结算中	25
+            projectService.updateProjectBilling(projectIdCollect);
             // TODO 推送消息
-
 
 
         } catch (Exception exception) {

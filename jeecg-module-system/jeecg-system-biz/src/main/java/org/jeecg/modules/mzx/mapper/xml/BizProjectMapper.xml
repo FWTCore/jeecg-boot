@@ -11,6 +11,30 @@
             <foreach collection="ids" item="id" separator="," open="(" close=")">
                 #{id}
             </foreach>
-          and project_status='10'
+          and project_status=10
+    </update>
+
+    <update id="updateProjectBilling">
+        update biz_project
+        set project_status=25,
+        update_by=#{userName},
+        update_time=now()
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and project_status=20
+    </update>
+
+    <update id="updateProjectFinish">
+        update biz_project
+        set project_status=30,
+        update_by=#{userName},
+        update_time=now()
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and project_status=25
     </update>
 </mapper>

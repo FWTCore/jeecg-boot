@@ -32,10 +32,18 @@ public interface IBizProjectBillingService extends IService<BizProjectBilling> {
     void batchInsertBizProjectBilling(List<BizProjectBillingModel> data);
 
     /**
-     *
+     * 分页项目提成
      * @param page
      * @param query
      * @return
      */
     IPage<BizProjectBillingVO> pageProjectBilling(Page<BizProjectBilling> page, BizProjectBilling query);
+
+
+    /**
+     * 更新项目提成状态为已完成
+     * @param ids
+     * @param userName
+     */
+    void updateProjectBillingFinish(List<String> ids);
 }

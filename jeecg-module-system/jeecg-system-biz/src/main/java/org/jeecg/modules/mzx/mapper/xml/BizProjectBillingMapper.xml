@@ -74,4 +74,16 @@
             and leader_name LIKE concat('%',#{query.leaderName},'%')
         </if>
     </select>
+
+    <update id="updateProjectBillingFinish">
+        update biz_project_billing
+        set billing_status=30,
+        update_by=#{userName},
+        update_time=now()
+        where project_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and billing_status=20
+    </update>
 </mapper>

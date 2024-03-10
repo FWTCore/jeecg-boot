@@ -50,15 +50,15 @@ public class BizProjectBillingCommission implements Serializable {
     /**
      * 金额
      */
-    private BigDecimal commission;
+    private BigDecimal implementCommission;
     /**
-     * 是否确认时间
+     * 发放周期
      */
-    private Boolean sureFlag;
+    private Integer period;
     /**
-     * 确认时间
+     * 发放时间
      */
-    private Date sureTime;
+    private Date paymentTime;
     /**
      * 是否删除
      */

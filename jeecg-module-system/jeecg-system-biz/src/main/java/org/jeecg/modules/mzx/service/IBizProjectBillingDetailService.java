@@ -1,5 +1,8 @@
 package org.jeecg.modules.mzx.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import org.jeecg.modules.mzx.entity.BizProjectBillingDetail;
+
 import java.util.List;
 
 /**
@@ -9,7 +12,7 @@ import java.util.List;
  * @date 2024/3/4
  */
 
-public interface IBizProjectBillingDetailService {
+public interface IBizProjectBillingDetailService extends IService<BizProjectBillingDetail> {
 
 
     /**
