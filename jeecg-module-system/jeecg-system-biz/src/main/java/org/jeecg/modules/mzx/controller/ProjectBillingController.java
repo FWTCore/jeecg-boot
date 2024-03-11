@@ -212,6 +212,10 @@ public class ProjectBillingController {
             if (!data.getBillingStatus().equals(1)) {
                 result.error500("该项目已审核通过，请不要重复审核");
             }
+            LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            if (!data.getLeaderId().equals(user.getId())) {
+                throw new JeecgBootException("只能项目负责人才能审核项目");
+            }
             data.setBillingStatus(20);
             projectBillingService.updateById(data);
             // 生成项目结算提成

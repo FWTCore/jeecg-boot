@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Api(tags = "项目费用")
 @RestController
@@ -108,11 +109,20 @@ public class ProjectCostController {
                 json.put("staff", dataList.stream().findFirst().get().getStaff());
                 json.put("createTime", data.getCreateTime());
                 String costRemark = "";
+
+
+                Map<String, BigDecimal> costNumByCostKey = dataList.stream()
+                        .collect(Collectors.groupingBy(BizProjectCost::getCostKey,
+                                Collectors.reducing(BigDecimal.ZERO, BizProjectCost::getCostValue, BigDecimal::add)));
+                for (Map.Entry<String, BigDecimal> costData : costNumByCostKey.entrySet()) {
+                    json.put(String.format("%s_cost", costData.getKey()), costData.getValue());
+                }
+
                 for (BizProjectCost item : dataList) {
-                    json.put(String.format("%s_cost", item.getCostKey()), item.getCostValue());
                     json.put(String.format("%s_remark", item.getCostKey()), item.getCostRemark());
                     costRemark += String.format("%s;", item.getCostRemark());
                 }
+
                 json.put("cost_remark", costRemark);
                 resultList.getRecords().add(json);
             }
@@ -421,7 +431,6 @@ public class ProjectCostController {
         lambdaQueryWrapper.lt(BizProjectCost::getCreateTime, idTime.getTime());
         projectCostService.remove(lambdaQueryWrapper);
     }
-
 
 
     @ApiOperation("项目成本核算")

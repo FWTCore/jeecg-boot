@@ -187,7 +187,7 @@ public class EmployeePayrollController {
                 throw new JeecgBootException("该员工工资已存在，请核对后处理");
             }
             // 综合工资
-            payroll.setComprehensivePayroll(calculateComprehensivePayroll(payroll));
+            employeePayroll.setComprehensivePayroll(calculateComprehensivePayroll(employeePayroll));
             employeePayroll.setCreatedTime(new Date());
             employeePayroll.setDelFlag(CommonConstant.DEL_FLAG_0);
             Short payrollStatus = 1;
@@ -224,6 +224,7 @@ public class EmployeePayrollController {
 
             LambdaQueryWrapper<BizEmployeePayroll> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(BizEmployeePayroll::getEmployeeId, employeePayroll.getEmployeeId());
+            lambdaQueryWrapper.eq(BizEmployeePayroll::getPeriod, employeePayroll.getPeriod());
             lambdaQueryWrapper.eq(BizEmployeePayroll::getDelFlag, CommonConstant.DEL_FLAG_0);
             lambdaQueryWrapper.ne(BizEmployeePayroll::getId, employeePayroll.getId());
             BizEmployeePayroll payroll = bizEmployeePayrollService.getOne(lambdaQueryWrapper);
