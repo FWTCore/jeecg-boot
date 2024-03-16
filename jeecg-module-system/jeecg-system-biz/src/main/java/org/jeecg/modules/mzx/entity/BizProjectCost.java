@@ -59,6 +59,11 @@ public class BizProjectCost implements Serializable {
      * 员工
      */
     private String staff;
+    /**
+     * 周期
+     * yyyyMMdd
+     */
+    private Integer period;
 
     /**
      * 删除状态

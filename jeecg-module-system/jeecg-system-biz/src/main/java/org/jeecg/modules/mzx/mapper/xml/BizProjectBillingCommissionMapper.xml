@@ -23,7 +23,7 @@
                 select 1
                 from biz_project_billing_commission as bpbc
                 where bpb.project_id = bpbc.project_id
-                    and bpb.staff_id = bpbc.staff_id
+                    and bpbc.staff_id = bpbc.staff_id
                     and bpbc.del_flag = 0
             )
         group by bpb.project_id, bpbd.staff_id
