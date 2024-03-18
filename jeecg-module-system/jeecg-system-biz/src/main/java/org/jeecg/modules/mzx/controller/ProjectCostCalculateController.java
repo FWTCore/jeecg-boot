@@ -48,6 +48,7 @@ public class ProjectCostCalculateController {
                                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, HttpServletRequest req) {
         Result<IPage<BizProjectCostCalculate>> result = new Result<IPage<BizProjectCostCalculate>>();
         QueryWrapper<BizProjectCostCalculate> queryWrapper = QueryGenerator.initQueryWrapper(projectCostCalculate, req.getParameterMap());
+        queryWrapper.orderByDesc("projectId").orderByDesc("projectStatus");
         Page<BizProjectCostCalculate> page = new Page<BizProjectCostCalculate>(pageNo, pageSize);
         IPage<BizProjectCostCalculate> pageList = projectCostCalculateService.page(page, queryWrapper);
         result.setSuccess(true);
