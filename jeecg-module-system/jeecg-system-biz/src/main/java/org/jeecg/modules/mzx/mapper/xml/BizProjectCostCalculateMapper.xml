@@ -87,7 +87,7 @@
 
     <select id="listProjectCostDetailSum" resultType="org.jeecg.modules.mzx.model.ProjectCostModel">
         select project_id                                                         as projectId,
-               ifnull(sum(comprehensive_subsidy), 0) + ifnull(sum(labor_cost), 0) as totalCost
+               ifnull(sum(comprehensive_subsidy), 0) + ifnull(sum(labor_cost), 0) + ifnull(sum(project_subsidy), 0)  as totalCost
         from biz_project_cost_detail
         where project_id in
             <foreach collection="projectIds" item="projectId" separator="," open="(" close=")">
