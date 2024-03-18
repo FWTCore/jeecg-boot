@@ -6,8 +6,8 @@
         select distinct project_id as projectId
         from biz_project_cost_detail
         where (
-                    create_time >= #{startTime}
-                and #{endTime} > create_time
+                    created_time >= #{startTime}
+                and #{endTime} > created_time
             )
            or (
                     update_time >= #{startTime}
@@ -34,7 +34,7 @@
         insert into temp_project_cost_calculate(id, project_id, project_name,project_amount, comprehensive_cost, project_cost, sale_commission,implement_commission, cost_ratio,super_lifeline,project_status)
         values
         <foreach collection="dataList" item="data" separator =",">
-            (#{data.id},#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline}},#{data.projectStatus})
+            (#{data.id},#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline},#{data.projectStatus})
         </foreach>
         ;
         INSERT INTO biz_project_cost_calculate
@@ -67,7 +67,7 @@
         insert into temp_project_cost_calculate(project_id, project_name,project_amount, comprehensive_cost, project_cost, sale_commission,implement_commission, cost_ratio,super_lifeline,project_status)
         values
         <foreach collection="dataList" item="data" separator =",">
-            (#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline}},#{data.projectStatus})
+            (#{data.projectId},#{data.projectName},#{data.projectAmount},#{data.comprehensiveCost},#{data.projectCost},#{data.saleCommission},#{data.implementCommission},#{data.costRatio},#{data.superLifeline},#{data.projectStatus})
         </foreach>
         ;
         update biz_project_cost_calculate as bpcc
@@ -80,7 +80,7 @@
             bpcc.cost_ratio=tep.cost_ratio,
             bpcc.super_lifeline=tep.super_lifeline,
             bpcc.project_status=tep.project_status,
-            bep.update_time=now()
+            bpcc.update_time=now()
         ;
         drop temporary table if exists temp_project_cost_calculate;
     </update>

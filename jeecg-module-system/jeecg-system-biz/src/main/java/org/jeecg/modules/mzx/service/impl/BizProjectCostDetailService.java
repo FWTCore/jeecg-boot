@@ -59,22 +59,18 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             return;
         }
 
-        // 全部员工id
+        // 员工id
         Set<String> employeeIdSet = new HashSet<>();
-        List<BizProjectCost> employeeProjectCostList = listEmployeeProjectCost(projectIdList, startTime, endTime);
         // 获取项目全部费用
+        List<BizProjectCost> employeeProjectCostList = listEmployeeProjectCost(projectIdList, startTime, endTime);
         if (CollectionUtil.isNotEmpty(employeeProjectCostList)) {
             employeeIdSet.addAll(employeeProjectCostList.stream().map(BizProjectCost::getStaffId).collect(Collectors.toList()));
         }
 
-        // 获取项目日志员工
+        // 获取项目全部日志
         List<BizProjectScheduleLog> scheduleLogList = listEmployeeProjectScheduleLog(projectIdList, startTime, endTime);
-        List<BizEmployeeSalary> employeeSalaryList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(scheduleLogList)) {
-            List<String> employeeIdList = scheduleLogList.stream().map(BizProjectScheduleLog::getStaffId).collect(Collectors.toList());
-            // 获取项目员工的薪资
-            employeeSalaryList = listEmployeeSalary(employeeIdList);
-            employeeIdSet.addAll(employeeIdList);
+            employeeIdSet.addAll(scheduleLogList.stream().map(BizProjectScheduleLog::getStaffId).collect(Collectors.toList()));
         }
         // 获取全部员工信息
         List<String> userIdList = new ArrayList<>(employeeIdSet);
@@ -83,15 +79,16 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             userList = listSysUser(userIdList);
         }
         if (CollectionUtil.isEmpty(userList)) {
-            log.info(String.format("无项目人工成本数据生成"));
+            log.info("无项目人工成本数据生成");
             return;
         }
+        // 获取员工的薪资
+        List<BizEmployeeSalary> employeeSalaryList = listEmployeeSalary(userIdList);
         // 获取全部项目
         List<BizProject> projectList = listProject(projectIdList);
 
         // 项目补助
         List<BizProjectCostDetail> projectCostDetails = new ArrayList<>();
-        List<BizEmployeeSalary> finalEmployeeSalaryList = employeeSalaryList;
         userList.forEach(user -> {
             // 当前用户项目id
             Set<String> userProjectIdSet = new HashSet<>();
@@ -99,13 +96,14 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             userProjectIdSet.addAll(employeeProjectCostList.stream().filter(e -> e.getStaffId().equals(user.getId())).map(BizProjectCost::getProjectId).collect(Collectors.toList()));
             // 项目日志
             userProjectIdSet.addAll(scheduleLogList.stream().filter(e -> e.getStaffId().equals(user.getId())).map(BizProjectScheduleLog::getProjectId).collect(Collectors.toList()));
+
             List<String> userProjectIdList = new ArrayList<>(userProjectIdSet);
             if (CollectionUtil.isNotEmpty(userProjectIdList)) {
                 userProjectIdList.forEach(projectId -> {
                     Optional<BizProject> projectOptional = projectList.stream().filter(e -> e.getId().equals(projectId)).findFirst();
                     if (projectOptional.isPresent()) {
                         BizProject project = projectOptional.get();
-                        BizProjectCostDetail tempData = structureProjectCostDetail(user, project, finalEmployeeSalaryList, employeeProjectCostList, scheduleLogList);
+                        BizProjectCostDetail tempData = structureProjectCostDetail(user, project, employeeSalaryList, employeeProjectCostList, scheduleLogList);
                         tempData.setId(UUID.randomUUID().toString().replace("-", ""));
                         tempData.setPeriod(period);
                         projectCostDetails.add(tempData);
@@ -140,7 +138,7 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
         resultData.setEmployeeId(user.getId());
         resultData.setEmployeeName(user.getRealname());
 
-        // 项目补助
+        // 补助
         if (CollectionUtil.isNotEmpty(projectCosts)) {
             //获取指定用户，指定项目费用集合
             /**
@@ -157,6 +155,13 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             } else {
                 resultData.setComprehensiveSubsidy(BigDecimal.ZERO);
             }
+            // 项目补助
+            projectCostCollect = projectCosts.stream().filter(e -> e.getStaffId().equals(user.getId()) && e.getProjectId().equals(project.getId()) && e.getCostKey().equals("1")).collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(projectCostCollect)) {
+                resultData.setProjectSubsidy(projectCostCollect.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
+            } else {
+                resultData.setProjectSubsidy(BigDecimal.ZERO);
+            }
         }
 
         // 员工工资
@@ -167,7 +172,7 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             if (employeeSalaryOptional.isPresent()) {
                 BizEmployeeSalary bizEmployeeSalary = employeeSalaryOptional.get();
                 if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getSalary())) {
-                    //综合薪资=基本工资+社保+公积金+项目补助
+                    //薪资=基本工资+社保+公积金
                     BigDecimal totalSalary = BigDecimal.ZERO;
                     if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getSalary())) {
                         totalSalary = totalSalary.add(bizEmployeeSalary.getSalary());
@@ -177,13 +182,6 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
                     }
                     if (ObjectUtils.isNotEmpty(bizEmployeeSalary.getAccumulationFund())) {
                         totalSalary = totalSalary.add(bizEmployeeSalary.getAccumulationFund());
-                    }
-                    if (CollectionUtil.isNotEmpty(projectCosts)) {
-                        // 指定用户 指定项目 的 项目补助 key:1
-                        List<BizProjectCost> tempCollect = projectCosts.stream().filter(e -> e.getStaffId().equals(user.getId()) && e.getProjectId().equals(project.getId()) && e.getCostKey().equals("1")).collect(Collectors.toList());
-                        if (CollectionUtil.isNotEmpty(tempCollect)) {
-                            totalSalary = totalSalary.add(tempCollect.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
-                        }
                     }
                     // 除以固定22天，计算每天的薪资，保留2位小数，四舍五入
                     perDaySalary = totalSalary.divide(new BigDecimal(22), 2, RoundingMode.HALF_UP);

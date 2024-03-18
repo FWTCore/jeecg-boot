@@ -44,6 +44,8 @@ public class ProjectCostDayJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         // 本月的起止时间
         Calendar instance = Calendar.getInstance();
+        instance.add(Calendar.DAY_OF_MONTH, 1);
+        instance.set(Calendar.HOUR_OF_DAY, 0);
         instance.set(Calendar.MINUTE, 0);
         instance.set(Calendar.SECOND, 0);
         instance.set(Calendar.MILLISECOND, 0);

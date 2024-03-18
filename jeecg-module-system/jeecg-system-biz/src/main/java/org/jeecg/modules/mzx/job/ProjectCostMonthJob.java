@@ -45,6 +45,7 @@ public class ProjectCostMonthJob implements Job {
         // 上一月 起止时间
         Calendar instance = Calendar.getInstance();
         instance.set(Calendar.DAY_OF_MONTH, 1);
+        instance.set(Calendar.HOUR_OF_DAY, 0);
         instance.set(Calendar.MINUTE, 0);
         instance.set(Calendar.SECOND, 0);
         instance.set(Calendar.MILLISECOND, 0);

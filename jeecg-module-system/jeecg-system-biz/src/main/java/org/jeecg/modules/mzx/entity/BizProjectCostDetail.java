@@ -52,13 +52,17 @@ public class BizProjectCostDetail implements Serializable {
      */
     private BigDecimal workDays;
     /**
-     * 综合补助
-     */
-    private BigDecimal comprehensiveSubsidy;
-    /**
      * 人力成本
      */
     private BigDecimal laborCost;
+    /**
+     * 项目补助
+     */
+    private BigDecimal projectSubsidy;
+    /**
+     * 综合补助
+     */
+    private BigDecimal comprehensiveSubsidy;
     /**
      * 是否删除
      */

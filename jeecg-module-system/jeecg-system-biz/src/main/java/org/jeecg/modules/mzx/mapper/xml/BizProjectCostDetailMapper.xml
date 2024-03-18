@@ -79,19 +79,20 @@
             `period`              int null,
             employee_id           varchar(32),
             employee_name         varchar(100),
-            work_hours            decimal(8, 2),
+            work_days            decimal(8, 2),
             comprehensive_subsidy decimal(20, 4),
-            labor_cost            decimal(20, 4)
+            labor_cost            decimal(20, 4),
+            project_subsidy decimal(20, 4)
         );
-        insert into temp_project_cost_detail(id, project_id, project_name, `period`, employee_id, employee_name, work_hours,comprehensive_subsidy, labor_cost)
+        insert into temp_project_cost_detail(id, project_id, project_name, `period`, employee_id, employee_name, work_days,comprehensive_subsidy, labor_cost, project_subsidy)
         values
         <foreach collection="dataList" item="data" separator =",">
-            (#{data.id},#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost})
+            (#{data.id},#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost},#{data.projectSubsidy})
         </foreach>
         ;
         INSERT INTO biz_project_cost_detail
-        (id, project_id, project_name, `period`, employee_id, employee_name, work_hours, comprehensive_subsidy, labor_cost, del_flag, create_by, created_time, update_by, update_time)
-        select id, project_id, project_name, `period`, employee_id, employee_name, work_hours, comprehensive_subsidy, labor_cost, 0, null, now(), null, now()
+        (id, project_id, project_name, `period`, employee_id, employee_name, work_days, comprehensive_subsidy, project_subsidy, labor_cost, del_flag, create_by, created_time, update_by, update_time)
+        select id, project_id, project_name, `period`, employee_id, employee_name, work_days, comprehensive_subsidy, project_subsidy, labor_cost, 0, null, now(), null, now()
         from temp_project_cost_detail tep
         where not exists (
             select 1
@@ -112,22 +113,24 @@
             `period` int null,
             employee_id varchar(32),
             employee_name varchar(100),
-            work_hours decimal(8, 2),
+            work_days decimal(8, 2),
             comprehensive_subsidy decimal(20, 4),
-            labor_cost decimal(20, 4)
+            labor_cost decimal(20, 4),
+            project_subsidy decimal(20, 4)
         );
-        insert into temp_project_cost_detail(project_id, project_name, `period`, employee_id, employee_name, work_hours,comprehensive_subsidy, labor_cost)
+        insert into temp_project_cost_detail(project_id, project_name, `period`, employee_id, employee_name, work_days,comprehensive_subsidy, labor_cost, project_subsidy)
         values
         <foreach collection="dataList" item="data" separator=",">
-            (#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost})
+            (#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost},#{data.projectSubsidy})
         </foreach>
         ;
         update biz_project_cost_detail as bpcd
         inner join temp_project_cost_detail as tep on bpcd.project_id = tep.project_id and bpcd.`period` = tep.`period` and bpcd.employee_id = tep.employee_id
-        set bpcd.work_hours=tep.work_hours,
+        set bpcd.work_days=tep.work_days,
             bpcd.comprehensive_subsidy=tep.comprehensive_subsidy,
+            bpcd.project_subsidy=tep.project_subsidy,
             bpcd.labor_cost=tep.labor_cost,
-            bep.update_time=now()
+            bpcd.update_time=now()
         ;
         drop temporary table if exists temp_project_cost_detail;
     </update>

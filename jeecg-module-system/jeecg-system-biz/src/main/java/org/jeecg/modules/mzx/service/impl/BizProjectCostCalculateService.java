@@ -119,7 +119,7 @@ public class BizProjectCostCalculateService extends ServiceImpl<BizProjectCostCa
         //成本率=（项目成本/（项目金额-综合费用）
         tempValue = BigDecimal.ZERO;
         if (ObjectUtils.isNotEmpty(resultData.getProjectCost())) {
-            if (ObjectUtils.isNotEmpty(projectFees)) {
+            if (ObjectUtils.isNotEmpty(projectFees) && projectFees.compareTo(BigDecimal.ZERO) != 0) {
                 tempValue = resultData.getProjectCost().divide(projectFees, 4, RoundingMode.HALF_UP);
                 tempValue = tempValue.multiply(BigDecimal.valueOf(100));
             }
