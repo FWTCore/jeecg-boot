@@ -184,10 +184,10 @@ public class ProjectCostController {
             for (DictModel dict : costList) {
                 boolean mapFlag = false;
                 if (collect.stream().anyMatch(e -> e.getCostKey().equals(dict.getValue()))) {
-                    BizProjectCost item = collect.stream().filter(e -> e.getCostKey().equals(dict.getValue())).findFirst().orElseGet(null);
-                    if (ObjectUtil.isNotNull(item)) {
-                        mp.put(String.format("%s_cost", dict.getValue()), item.getCostValue());
-                        mp.put(String.format("%s_remark", dict.getValue()), item.getCostRemark());
+                    List<BizProjectCost> itemList = collect.stream().filter(e -> e.getCostKey().equals(dict.getValue())).collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(itemList)) {
+                        mp.put(String.format("%s_cost", dict.getValue()), itemList.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
+                        mp.put(String.format("%s_remark", dict.getValue()),  String.join(",", itemList.stream().map(BizProjectCost::getCostRemark).collect(Collectors.toList())));
                         mapFlag = true;
                     }
                 }
@@ -306,7 +306,10 @@ public class ProjectCostController {
                     }
                     BizProjectCost tempData = new BizProjectCost();
                     // 确保一个类型的花费只有要给值
-                    if (!CollectionUtils.isEmpty(existCost) && existCost.stream().anyMatch(e -> e.getCostKey().equals(cost.getValue()))) {
+                    if (CollectionUtils.isNotEmpty(existCost)) {
+                        if (existCost.stream().filter(e -> e.getCostKey().equals(cost.getValue())).count() != 1) {
+                            throw new JeecgBootException("历史数据存在多条，请联系技术人员处理");
+                        }
                         tempData = existCost.stream().filter(e -> e.getCostKey().equals(cost.getValue())).findFirst().get();
                         tempData.setCostValue(costValue);
                         tempData.setCostRemark(costRemark);
@@ -376,19 +379,11 @@ public class ProjectCostController {
         if (idData.length != 3) {
             throw new JeecgBootException("请刷新页面提交");
         }
-        Date idDate = new Date(Long.parseLong(idData[2]));
-        Calendar idTime = Calendar.getInstance();
-        idTime.setTime(idDate);
-        idTime.set(Calendar.HOUR, 0);
-        idTime.set(Calendar.MINUTE, 0);
-        idTime.set(Calendar.SECOND, 0);
-        idTime.set(Calendar.MILLISECOND, 0);
+        Integer period = Integer.parseInt(idData[2]);
         LambdaQueryWrapper<BizProjectCost> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(BizProjectCost::getProjectId, idData[0]);
         lambdaQueryWrapper.eq(BizProjectCost::getStaffId, idData[1]);
-        lambdaQueryWrapper.ge(BizProjectCost::getCreateTime, idTime.getTime());
-        idTime.add(Calendar.DAY_OF_MONTH, 1);
-        lambdaQueryWrapper.lt(BizProjectCost::getCreateTime, idTime.getTime());
+        lambdaQueryWrapper.eq(BizProjectCost::getPeriod, period);
         projectCostService.remove(lambdaQueryWrapper);
     }
 
