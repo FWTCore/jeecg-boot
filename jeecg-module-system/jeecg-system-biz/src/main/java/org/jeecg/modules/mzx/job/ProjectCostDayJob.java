@@ -56,6 +56,8 @@ public class ProjectCostDayJob implements Job {
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostDayJob !   时间:" + DateUtils.now(), this.parameter));
         try {
+            log.info(String.format(" 处理时间【%s-%s】", DateUtils.date2Str(monthStartTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(monthEndTime, DateUtils.yyyymmddhhmmss.get())));
+
             // 项目人工成本核算
             projectCostDetailService.initProjectCostDetail(monthStartTime, monthEndTime);
             // 项目成本核算

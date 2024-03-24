@@ -1,6 +1,10 @@
 package org.jeecg.modules.mzx.job;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jeecg.common.util.DateUtils;
 import org.jeecg.modules.mzx.service.IBizProjectCostCalculateService;
 import org.jeecg.modules.mzx.service.IBizProjectCostDetailService;
@@ -44,6 +48,10 @@ public class ProjectCostMonthJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         // 上一月 起止时间
         Calendar instance = Calendar.getInstance();
+        if (StringUtils.isNotBlank(this.parameter)) {
+            DateTime parseDate = DateUtil.parse(this.parameter);
+            instance.setTime(parseDate);
+        }
         instance.set(Calendar.DAY_OF_MONTH, 1);
         instance.set(Calendar.HOUR_OF_DAY, 0);
         instance.set(Calendar.MINUTE, 0);
@@ -57,6 +65,7 @@ public class ProjectCostMonthJob implements Job {
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostMonthJob !   时间:" + DateUtils.now(), this.parameter));
         try {
+            log.info(String.format(" 处理时间【%s-%s】", DateUtils.date2Str(lastMonthStartTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(lastMonthEndTime, DateUtils.yyyymmddhhmmss.get())));
             // 项目人工成本核算
             projectCostDetailService.initProjectCostDetail(lastMonthStartTime, lastMonthEndTime);
             // 项目成本核算
