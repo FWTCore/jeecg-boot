@@ -292,8 +292,6 @@ public class ProjectCostController {
                     // 未设置，不处理
                     if (json.containsKey(String.format("%s_cost", cost.getValue()))) {
                         costValueStr = json.getString(String.format("%s_cost", cost.getValue())).trim();
-                    } else {
-                        continue;
                     }
                     // 花费值
                     BigDecimal costValue = new BigDecimal("0");
@@ -306,7 +304,7 @@ public class ProjectCostController {
                     }
                     BizProjectCost tempData = new BizProjectCost();
                     // 确保一个类型的花费只有要给值
-                    if (CollectionUtils.isNotEmpty(existCost)) {
+                    if (CollectionUtils.isNotEmpty(existCost) && existCost.stream().anyMatch(e -> e.getCostKey().equals(cost.getValue()))) {
                         if (existCost.stream().filter(e -> e.getCostKey().equals(cost.getValue())).count() != 1) {
                             throw new JeecgBootException("历史数据存在多条，请联系技术人员处理");
                         }
