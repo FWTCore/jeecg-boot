@@ -17,15 +17,19 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizEmployeePayroll;
-import org.jeecg.modules.mzx.entity.BizEmployeeSalary;
 import org.jeecg.modules.mzx.entity.BizProjectBillingCommission;
 import org.jeecg.modules.mzx.model.OwnPayrollVO;
 import org.jeecg.modules.mzx.service.IBizEmployeePayrollService;
 import org.jeecg.modules.mzx.service.IBizProjectBillingCommissionService;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
+import org.jeecgframework.poi.excel.def.NormalExcelConstants;
+import org.jeecgframework.poi.excel.entity.ExportParams;
+import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -52,6 +56,8 @@ public class EmployeePayrollController {
     private ISysUserService sysUserService;
     @Autowired
     private IBizProjectBillingCommissionService bizProjectBillingCommissionService;
+    @Value("${jeecg.path.upload}")
+    private String upLoadPath;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -67,6 +73,36 @@ public class EmployeePayrollController {
         result.setResult(pageList);
         return result;
     }
+
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param payroll
+     */
+    @RequestMapping(value = "/exportXls")
+    public ModelAndView exportXls(HttpServletRequest request, BizEmployeePayroll payroll) {
+        // Step.1 组装查询条件
+        QueryWrapper<BizEmployeePayroll> queryWrapper = QueryGenerator.initQueryWrapper(payroll, request.getParameterMap());
+
+        //Step.2 AutoPoi 导出Excel
+        ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
+
+        List<BizEmployeePayroll> list = bizEmployeePayrollService.list(queryWrapper);
+
+        //导出文件名称
+        mv.addObject(NormalExcelConstants.FILE_NAME, "员工工资列表");
+        mv.addObject(NormalExcelConstants.CLASS, BizEmployeePayroll.class);
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        ExportParams exportParams = new ExportParams("员工工资列表", "导出人:"+user.getRealname(), "导出信息");
+        exportParams.setImageBasePath(upLoadPath);
+        mv.addObject(NormalExcelConstants.PARAMS, exportParams);
+        mv.addObject(NormalExcelConstants.DATA_LIST, list);
+        return mv;
+
+    }
+
 
     /**
      * @param ids

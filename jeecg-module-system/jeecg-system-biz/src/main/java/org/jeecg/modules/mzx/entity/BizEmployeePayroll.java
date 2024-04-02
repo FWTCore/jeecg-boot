@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
+import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -42,18 +43,22 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 员工名称
      */
+    @Excel(name = "员工名称", width = 15)
     private String employeeName;
     /**
      * 基本工资
      */
+    @Excel(name = "基本工资", width = 15)
     private BigDecimal salary;
     /**
      * 社保
      */
+    @Excel(name = "社保", width = 15)
     private BigDecimal socialInsurance;
     /**
      * 公积金
      */
+    @Excel(name = "公积金", width = 15)
     private BigDecimal accumulationFund;
     /**
      * 项目补助收集
@@ -62,10 +67,12 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 项目补助
      */
+    @Excel(name = "项目补助", width = 15)
     private BigDecimal projectSubsidy;
     /**
      * 项目补助备注
      */
+    @Excel(name = "项目补助备注", width = 40)
     private String projectSubsidyRemark;
     /**
      * 交通补助收集
@@ -74,10 +81,12 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 交通补助
      */
+    @Excel(name = "交通补助", width = 15)
     private BigDecimal trafficSubsidy;
     /**
      * 交通补助备注
      */
+    @Excel(name = "交通补助备注", width = 40)
     private String trafficSubsidyRemark;
     /**
      * 住宿补助收集
@@ -86,10 +95,12 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 住宿补助
      */
+    @Excel(name = "住宿补助", width = 15)
     private BigDecimal accommodationSubsidy;
     /**
      * 住宿补助备注
      */
+    @Excel(name = "住宿补助备注", width = 40)
     private String accommodationSubsidyRemark;
     /**
      * 用餐补助收集
@@ -98,10 +109,12 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 用餐补助
      */
+    @Excel(name = "用餐补助", width = 15)
     private BigDecimal diningSubsidy;
     /**
      * 用餐补助备注
      */
+    @Excel(name = "用餐补助备注", width = 40)
     private String diningSubsidyRemark;
     /**
      * 其他补助收集
@@ -110,18 +123,22 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 其他补助
      */
+    @Excel(name = "其他补助", width = 15)
     private BigDecimal otherSubsidy;
     /**
      * 其他补助备注
      */
+    @Excel(name = "其他补助备注", width = 40)
     private String otherSubsidyRemark;
     /**
      * 综合薪资
      */
+    @Excel(name = "综合薪资", width = 15)
     private BigDecimal comprehensivePayroll;
     /**
      * 周期
      */
+    @Excel(name = "周期", width = 15)
     private Integer period;
     /**
      * 周期
@@ -138,6 +155,7 @@ public class BizEmployeePayroll implements Serializable {
     /**
      * 工资状态 文本
      */
+    @Excel(name = "工资状态", width = 15)
     @TableField(exist = false)
     private String payrollStatusDesc;
 
