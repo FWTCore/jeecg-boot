@@ -138,15 +138,15 @@ spring:
           multi-statement-allow: true
       datasource:
         master:
-          url: jdbc:mysql://127.0.0.1:3306/xcom-system?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-          username: root
-          password: rootSA123456!
+          url: jdbc:mysql://192.168.1.4:3306/xcom-system?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+          username: sa_xcom
+          password: saxcom123456
           driver-class-name: com.mysql.cj.jdbc.Driver
           # 多数据源配置
         multi-datasource1:
-          url: jdbc:mysql://127.0.0.1:3306/xcom-system?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-          username: root
-          password: rootSA123456!
+          url: jdbc:mysql://192.168.1.4:3306/xcom-system?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+          username: sa_xcom
+          password: saxcom123456
           driver-class-name: com.mysql.cj.jdbc.Driver
 #        multi-datasource1:
 #          url: jdbc:sqlserver://127.0.0.1:1433;SelectMethod=cursor;DatabaseName=UFTData268637_060888
@@ -156,9 +156,9 @@ spring:
   #redis 配置
   redis:
     database: 0
-    host: 127.0.0.1
+    host: 192.168.1.4
     port: 6379
-    password: ''
+    password: 'xcom123456'
 #mybatis plus 设置
 mybatis-plus:
   mapper-locations: classpath*:org/jeecg/modules/**/xml/*Mapper.xml
