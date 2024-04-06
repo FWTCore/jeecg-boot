@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.exception.JeecgBootException;
@@ -29,6 +30,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Api(tags = "客户服务")
 @RestController
@@ -70,6 +72,13 @@ public class CustomerServiceController {
             cal.add(Calendar.DAY_OF_MONTH, 1);
             queryWrapper.lt(BizCustomerServiceLog::getCreateTime, cal.getTime());
         }
+        // 判断是否有权限，无权限只能查看自己的
+        Subject subject = SecurityUtils.getSubject();
+        if (!subject.isPermitted("office:management")) {
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            queryWrapper.eq(BizCustomerServiceLog::getStaffId, sysUser.getId());
+        }
+
         queryWrapper.orderByDesc(BizCustomerServiceLog::getCreateTime);
         Page<BizCustomerServiceLog> page = new Page<BizCustomerServiceLog>(pageNo, pageSize);
         IPage<BizCustomerServiceLog> pageList = serviceLogService.page(page, queryWrapper);
@@ -133,13 +142,20 @@ public class CustomerServiceController {
             result.error500("未找到对应实体");
         } else {
             LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            // 判断是否有权限，无权限，只能编辑自己的
+            Subject subject = SecurityUtils.getSubject();
+            if (!subject.isPermitted("office:management")) {
+                if (!data.getStaffId().equals(sysUser.getId())) {
+                    throw new JeecgBootException("只能编辑自己的数据");
+                }
+            }
             // 校验总时长
             Calendar instance = Calendar.getInstance();
             Date startTime = DateUtil.beginOfDay(data.getCreateTime());
             instance.setTime(startTime);
             instance.add(Calendar.DAY_OF_MONTH, 1);
             Date endTime = instance.getTime();
-            BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
+            BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(data.getStaffId(), startTime, endTime);
             BigDecimal totalWorkHours = workHours.add(serviceLog.getWorkHours());
             totalWorkHours = totalWorkHours.subtract(data.getWorkHours());
             // 工时大于1
@@ -172,7 +188,17 @@ public class CustomerServiceController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            serviceLogService.removeByIds(Arrays.asList(ids.split(",")));
+            List<String> idList = Arrays.asList(ids.split(","));
+            // 判断是否有权限，无权限只能查看自己的
+            Subject subject = SecurityUtils.getSubject();
+            if (!subject.isPermitted("office:management")) {
+                LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                List<BizCustomerServiceLog> bizCustomerServiceLogs = serviceLogService.listByIds(idList);
+                if (bizCustomerServiceLogs.stream().noneMatch(e -> e.getStaffId().equals(sysUser.getId()))) {
+                    throw new JeecgBootException("只能删除自己的数据");
+                }
+            }
+            serviceLogService.removeByIds(idList);
             result.success("删除成功!");
         }
         return result;
@@ -190,6 +216,14 @@ public class CustomerServiceController {
         if (data == null) {
             result.error500("未找到对应实体");
         } else {
+            // 判断是否有权限，无权限只能查看自己的
+            Subject subject = SecurityUtils.getSubject();
+            if (!subject.isPermitted("office:management")) {
+                LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                if (!data.getStaffId().equals(sysUser.getId())) {
+                    throw new JeecgBootException("只能删除自己的数据");
+                }
+            }
             serviceLogService.removeById(id);
             result.success("删除成功!");
         }

@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.jeecg.common.XComEntityExcelView;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
@@ -20,6 +21,7 @@ import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.vo.DictModel;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectCost;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
@@ -117,6 +119,7 @@ public class ProjectCostController {
 
     /**
      * 获取项目费用主体
+     *
      * @param projectCost
      * @param pageNo
      * @param pageSize
@@ -131,6 +134,12 @@ public class ProjectCostController {
         if (ObjectUtil.isNotNull(projectCost.getStaff())) {
             queryWrapper.like("staff", projectCost.getStaff());
         }
+        // 判断是否有权限，无权限只能查看自己的
+        Subject subject = SecurityUtils.getSubject();
+        if (!subject.isPermitted("office:management")) {
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            queryWrapper.like("staff_id", sysUser.getId());
+        }
         if (ObjectUtil.isNotNull(projectCost.getBeginDate())) {
             queryWrapper.ge("create_time", projectCost.getBeginDate());
         }
@@ -140,7 +149,7 @@ public class ProjectCostController {
             cal.add(Calendar.DAY_OF_MONTH, 1);
             queryWrapper.lt("create_time", cal.getTime());
         }
-        queryWrapper.select("distinct project_id as projectId, staff_id as staffId, `period` as period").orderByDesc("create_time");
+        queryWrapper.select("distinct project_id as projectId, staff_id as staffId, `period` as period").orderByDesc("period").orderByDesc("staff_id");
         Page<BizProjectCost> page = new Page<BizProjectCost>(pageNo, pageSize);
         return projectCostService.page(page, queryWrapper);
     }
@@ -187,7 +196,7 @@ public class ProjectCostController {
                     List<BizProjectCost> itemList = collect.stream().filter(e -> e.getCostKey().equals(dict.getValue())).collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(itemList)) {
                         mp.put(String.format("%s_cost", dict.getValue()), itemList.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
-                        mp.put(String.format("%s_remark", dict.getValue()),  String.join(",", itemList.stream().map(BizProjectCost::getCostRemark).collect(Collectors.toList())));
+                        mp.put(String.format("%s_remark", dict.getValue()), String.join(",", itemList.stream().map(BizProjectCost::getCostRemark).collect(Collectors.toList())));
                         mapFlag = true;
                     }
                 }
@@ -245,6 +254,14 @@ public class ProjectCostController {
                 if (!staffId.equals(idData[1])) {
                     throw new JeecgBootException("请刷新页面提交");
                 }
+                // 判断是否有权限，无权限，只能编辑自己的
+                Subject subject = SecurityUtils.getSubject();
+                if (!subject.isPermitted("office:management")) {
+                    LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+                    if (!staffId.equals(sysUser.getId())) {
+                        throw new JeecgBootException("只能编辑自己的数据");
+                    }
+                }
                 int currentPeriod = period;
                 period = Integer.parseInt(idData[2]);
                 // 编辑月份
@@ -253,10 +270,12 @@ public class ProjectCostController {
                 int currentPeriodMonth = currentPeriod / 100;
                 // 本月数据允许修改
                 if (currentPeriodMonth - editPeriodMonth != 0) {
-                    // 非本月，只允许本月1号修改上1个月的数据
+                    // 非本月，只允许修改上1个月的数据
                     if (currentPeriodMonth - editPeriodMonth == 1) {
-                        if (currentPeriodMonth * 100 + 1 != currentPeriod) {
-                            throw new JeecgBootException("只能本月1号修改上一个月数据");
+                        // 本月1号
+                        // TODO 暂时定到8号前修改
+                        if (currentPeriodMonth * 100 + 8 < currentPeriod) {
+                            throw new JeecgBootException("只能本月8号前修改上一个月数据");
                         }
                     } else {
                         throw new JeecgBootException("只能本月1号修改上一个月数据");
@@ -376,6 +395,14 @@ public class ProjectCostController {
         String[] idData = id.split("_");
         if (idData.length != 3) {
             throw new JeecgBootException("请刷新页面提交");
+        }
+        // 判断是否有权限，无权限只能查看自己的
+        Subject subject = SecurityUtils.getSubject();
+        if (!subject.isPermitted("office:management")) {
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            if (!idData[1].equals(sysUser.getId())) {
+                throw new JeecgBootException("只能删除自己的数据");
+            }
         }
         Integer period = Integer.parseInt(idData[2]);
         LambdaQueryWrapper<BizProjectCost> lambdaQueryWrapper = new LambdaQueryWrapper<>();
