@@ -268,17 +268,21 @@ public class ProjectCostController {
                 int editPeriodMonth = period / 100;
                 // 本月
                 int currentPeriodMonth = currentPeriod / 100;
-                // 本月数据允许修改
-                if (currentPeriodMonth - editPeriodMonth != 0) {
-                    // 非本月，只允许修改上1个月的数据
-                    if (currentPeriodMonth - editPeriodMonth == 1) {
-                        // 本月1号
-                        // TODO 暂时定到8号前修改
-                        if (currentPeriodMonth * 100 + 8 < currentPeriod) {
-                            throw new JeecgBootException("只能本月8号前修改上一个月数据");
+                // 本月数据允许修改 currentPeriodMonth - editPeriodMonth != 0
+                // todo 202403 限制到10号修改
+                if(currentPeriodMonth - editPeriodMonth != 0){
+                    if (editPeriodMonth == 202403) {
+                        // 非本月，只允许修改上1个月的数据
+                        if (currentPeriodMonth - editPeriodMonth == 1) {
+                            // 本月10号
+                            if (currentPeriodMonth * 100 + 10 < currentPeriod) {
+                                throw new JeecgBootException("只能本月10号前修改上一个月数据");
+                            }
+                        } else {
+                            throw new JeecgBootException("只能本月10号前修改上一个月数据");
                         }
-                    } else {
-                        throw new JeecgBootException("只能本月1号修改上一个月数据");
+                    } else if (editPeriodMonth != 202401 && editPeriodMonth != 202402) {
+                        throw new JeecgBootException("只能本月10号前修改上一个月数据");
                     }
                 }
             } else {
@@ -297,7 +301,7 @@ public class ProjectCostController {
                 queryWrapper.eq("project_id", project.getId());
                 queryWrapper.eq("staff_id", staffId);
                 queryWrapper.eq("del_flag", CommonConstant.DEL_FLAG_0);
-                queryWrapper.ge("period", period);
+                queryWrapper.eq("period", period);
                 List<BizProjectCost> existCost = projectCostService.list(queryWrapper);
                 // 获取字典配置
                 List<DictModel> costList = sysDictService.queryDictItemsByCode("project_cost_key");
