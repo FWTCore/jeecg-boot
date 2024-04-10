@@ -59,17 +59,19 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
         // 上个月时间
         Calendar instance = Calendar.getInstance();
         instance.set(Calendar.DAY_OF_MONTH, 1);
+        instance.set(Calendar.HOUR_OF_DAY, 0);
         instance.set(Calendar.MINUTE, 0);
         instance.set(Calendar.SECOND, 0);
         instance.set(Calendar.MILLISECOND, 0);
-        Date endTime = instance.getTime();
+        Integer endPeriod = instance.get(Calendar.YEAR) * 10000 + (instance.get(Calendar.MONTH) + 1) * 100 + instance.get(Calendar.DAY_OF_MONTH);
         instance.add(Calendar.MONTH, -1);
-        Date startTime = instance.getTime();
+        Integer startPeriod = instance.get(Calendar.YEAR) * 10000 + (instance.get(Calendar.MONTH) + 1) * 100 + instance.get(Calendar.DAY_OF_MONTH);
+
         // 周期
         Integer period = instance.get(Calendar.YEAR) * 100 + instance.get(Calendar.MONTH) + 1;
 
         // 获取员工的项目费用
-        List<EmployeeProjectCostModel> employeeProjectCostModels = bizProjectCostService.listEmployeeProjectCost(startTime, endTime);
+        List<EmployeeProjectCostModel> employeeProjectCostModels = bizProjectCostService.listEmployeeProjectCost(startPeriod, endPeriod);
 
         // 获取全部员工的id
         Set<String> employeeIdSet = new HashSet<>();
