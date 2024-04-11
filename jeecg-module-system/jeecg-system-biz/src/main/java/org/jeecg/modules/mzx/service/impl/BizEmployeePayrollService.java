@@ -1,10 +1,13 @@
 package org.jeecg.modules.mzx.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.vo.LoginUser;
@@ -49,7 +52,7 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
 
 
     @Override
-    public void initLastMonthEmployeePayroll() {
+    public void initLastMonthEmployeePayroll(String date) {
 
         // 获取员工薪资
         LambdaQueryWrapper<BizEmployeeSalary> salaryLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -58,6 +61,10 @@ public class BizEmployeePayrollService extends ServiceImpl<BizEmployeePayrollMap
 
         // 上个月时间
         Calendar instance = Calendar.getInstance();
+        if (StringUtils.isNotBlank(date)) {
+            DateTime parseDate = DateUtil.parse(date);
+            instance.setTime(parseDate);
+        }
         instance.set(Calendar.DAY_OF_MONTH, 1);
         instance.set(Calendar.HOUR_OF_DAY, 0);
         instance.set(Calendar.MINUTE, 0);

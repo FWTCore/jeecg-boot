@@ -1,6 +1,9 @@
 package org.jeecg.modules.mzx.job;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jeecg.common.util.DateUtils;
 import org.jeecg.modules.mzx.service.IBizEmployeePayrollService;
 import org.quartz.Job;
@@ -40,7 +43,8 @@ public class EmployeePayrollJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 EmployeePayrollJob !   时间:" + DateUtils.now(), this.parameter));
-        bizEmployeePayrollService.initLastMonthEmployeePayroll();
+
+        bizEmployeePayrollService.initLastMonthEmployeePayroll(this.parameter);
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey() + "执行完成");
 
     }

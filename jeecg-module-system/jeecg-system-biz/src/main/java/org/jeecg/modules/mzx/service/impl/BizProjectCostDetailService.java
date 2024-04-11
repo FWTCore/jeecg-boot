@@ -53,7 +53,7 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
         // 周期
         Integer period = instance.get(Calendar.YEAR) * 100 + instance.get(Calendar.MONTH) + 1;
         // 确定需要处理的项目数据
-        List<String> projectIdList = projectCostDetailMapper.listMonitorCostProject(startTime, endTime);
+        List<String> projectIdList = projectCostDetailMapper.listMonitorCostProject(startTime, endTime, period);
         if (CollectionUtil.isEmpty(projectIdList)) {
             log.info(String.format("时间【%s-%s】无项目数据变动", DateUtils.date2Str(startTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(endTime, DateUtils.yyyymmddhhmmss.get())));
             return;

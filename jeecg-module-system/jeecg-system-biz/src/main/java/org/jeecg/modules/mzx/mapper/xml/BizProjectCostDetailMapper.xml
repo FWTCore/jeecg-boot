@@ -67,6 +67,10 @@
                     update_time >= #{startTime}
                 and #{endTime} > update_time
             )
+        union
+        select distinct project_id as projectId
+        from biz_project_cost_detail
+        where period = #{period}
     </select>
 
     <insert id="insertProjectCostDetail">

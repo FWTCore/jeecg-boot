@@ -27,12 +27,13 @@ public interface BizProjectCostDetailMapper extends BaseMapper<BizProjectCostDet
      * biz_project_schedule_item_usage
      * biz_project_schedule_log
      * biz_project_schedule_usage
+     * biz_project_cost_detail
      *
      * @param startTime
      * @param endTime
      * @return
      */
-    List<String> listMonitorCostProject(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
+    List<String> listMonitorCostProject(@Param("startTime") Date startTime, @Param("endTime") Date endTime, @Param("period") Integer period);
 
     /**
      * 新增数据
