@@ -140,14 +140,16 @@ public class ProjectCostController {
             LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
             queryWrapper.like("staff_id", sysUser.getId());
         }
+
+        Calendar cal = Calendar.getInstance();
         if (ObjectUtil.isNotNull(projectCost.getBeginDate())) {
-            queryWrapper.ge("create_time", projectCost.getBeginDate());
+            cal.setTime(projectCost.getBeginDate());
+            queryWrapper.ge("period", cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH));
         }
         if (ObjectUtil.isNotNull(projectCost.getEndDate())) {
-            Calendar cal = Calendar.getInstance();
             cal.setTime(projectCost.getEndDate());
             cal.add(Calendar.DAY_OF_MONTH, 1);
-            queryWrapper.lt("create_time", cal.getTime());
+            queryWrapper.lt("period", cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH));
         }
         queryWrapper.select("distinct project_id as projectId, staff_id as staffId, `period` as period").orderByDesc("period").orderByDesc("staff_id");
         Page<BizProjectCost> page = new Page<BizProjectCost>(pageNo, pageSize);
