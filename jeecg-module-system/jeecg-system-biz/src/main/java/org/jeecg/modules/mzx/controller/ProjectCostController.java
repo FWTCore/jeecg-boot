@@ -240,6 +240,7 @@ public class ProjectCostController {
             // yyyyMMdd 当前周期
             int period = currentTime.get(Calendar.YEAR) * 10000 + (currentTime.get(Calendar.MONTH) + 1) * 100 + currentTime.get(Calendar.DAY_OF_MONTH);
 
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
             // 有id编辑
             if (!StringUtil.isNullOrEmpty(id)) {
                 if (StringUtil.isNullOrEmpty(staffId)) {
@@ -256,35 +257,35 @@ public class ProjectCostController {
                 if (!staffId.equals(idData[1])) {
                     throw new JeecgBootException("请刷新页面提交");
                 }
-                // 判断是否有权限，无权限，只能编辑自己的
-                Subject subject = SecurityUtils.getSubject();
-                if (!subject.isPermitted("office:management")) {
-                    LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-                    if (!staffId.equals(sysUser.getId())) {
-                        throw new JeecgBootException("只能编辑自己的数据");
+                // 账号880 允许编辑
+                if (!sysUser.getUsername().equals("880")) {
+                    // 判断是否有权限，无权限，只能编辑自己的
+                    Subject subject = SecurityUtils.getSubject();
+                    if (!subject.isPermitted("office:management")) {
+                        if (!staffId.equals(sysUser.getId())) {
+                            throw new JeecgBootException("只能编辑自己的数据");
+                        }
                     }
-                }
-                int currentPeriod = period;
-                period = Integer.parseInt(idData[2]);
-                // 编辑月份
-                int editPeriodMonth = period / 100;
-                // 本月
-                int currentPeriodMonth = currentPeriod / 100;
-                // 本月数据允许修改 currentPeriodMonth - editPeriodMonth != 0
-                if(currentPeriodMonth - editPeriodMonth != 0){
-                    // 非本月，只允许修改上1个月的数据
-                    if (currentPeriodMonth - editPeriodMonth == 1) {
-                        // 本月10号
-                        if (currentPeriodMonth * 100 + 10 < currentPeriod) {
+                    int currentPeriod = period;
+                    period = Integer.parseInt(idData[2]);
+                    // 编辑月份
+                    int editPeriodMonth = period / 100;
+                    // 本月
+                    int currentPeriodMonth = currentPeriod / 100;
+                    // 本月数据允许修改 currentPeriodMonth - editPeriodMonth != 0
+                    if(currentPeriodMonth - editPeriodMonth != 0){
+                        // 非本月，只允许修改上1个月的数据
+                        if (currentPeriodMonth - editPeriodMonth == 1) {
+                            // 本月10号
+                            if (currentPeriodMonth * 100 + 10 < currentPeriod) {
+                                throw new JeecgBootException("只能本月10号前修改上一个月数据");
+                            }
+                        } else {
                             throw new JeecgBootException("只能本月10号前修改上一个月数据");
                         }
-                    } else {
-                        throw new JeecgBootException("只能本月10号前修改上一个月数据");
                     }
                 }
             } else {
-                // 无id，是为新增，默认未当前登录人
-                LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
                 staffId = sysUser.getId();
                 staff = sysUser.getRealname();
             }
