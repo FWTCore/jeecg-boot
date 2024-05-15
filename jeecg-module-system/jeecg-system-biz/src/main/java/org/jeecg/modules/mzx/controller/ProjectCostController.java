@@ -198,7 +198,11 @@ public class ProjectCostController {
                     List<BizProjectCost> itemList = collect.stream().filter(e -> e.getCostKey().equals(dict.getValue())).collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(itemList)) {
                         mp.put(String.format("%s_cost", dict.getValue()), itemList.stream().map(BizProjectCost::getCostValue).reduce(BigDecimal.ZERO, BigDecimal::add));
-                        mp.put(String.format("%s_remark", dict.getValue()), String.join(",", itemList.stream().map(BizProjectCost::getCostRemark).collect(Collectors.toList())));
+                        String tempRemark = String.join(",", itemList.stream().map(BizProjectCost::getCostRemark).collect(Collectors.toList()));
+                        mp.put(String.format("%s_remark", dict.getValue()), tempRemark);
+                        if (StringUtils.isNotBlank(tempRemark)) {
+                            costRemark += String.format("%s;", tempRemark);
+                        }
                         mapFlag = true;
                     }
                 }
@@ -207,6 +211,7 @@ public class ProjectCostController {
                     mp.put(String.format("%s_remark", dict.getValue()), "");
                 }
             }
+            mp.put("cost_remark", costRemark);
             resultList.add(mp);
         }
         return resultList;
@@ -273,7 +278,7 @@ public class ProjectCostController {
                     // 本月
                     int currentPeriodMonth = currentPeriod / 100;
                     // 本月数据允许修改 currentPeriodMonth - editPeriodMonth != 0
-                    if(currentPeriodMonth - editPeriodMonth != 0){
+                    if (currentPeriodMonth - editPeriodMonth != 0) {
                         // 非本月，只允许修改上1个月的数据
                         if (currentPeriodMonth - editPeriodMonth == 1) {
                             // 本月10号
