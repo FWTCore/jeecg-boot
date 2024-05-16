@@ -262,6 +262,9 @@ public class ProjectCostController {
                 if (!staffId.equals(idData[1])) {
                     throw new JeecgBootException("请刷新页面提交");
                 }
+                int currentPeriod = period;
+                period = Integer.parseInt(idData[2]);
+
                 // 账号880 允许编辑
                 if (!sysUser.getUsername().equals("880")) {
                     // 判断是否有权限，无权限，只能编辑自己的
@@ -271,8 +274,6 @@ public class ProjectCostController {
                             throw new JeecgBootException("只能编辑自己的数据");
                         }
                     }
-                    int currentPeriod = period;
-                    period = Integer.parseInt(idData[2]);
                     // 编辑月份
                     int editPeriodMonth = period / 100;
                     // 本月
