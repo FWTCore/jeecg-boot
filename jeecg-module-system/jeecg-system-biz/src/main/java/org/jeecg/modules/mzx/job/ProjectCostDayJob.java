@@ -48,9 +48,12 @@ public class ProjectCostDayJob implements Job {
         instance.set(Calendar.MINUTE, 0);
         instance.set(Calendar.SECOND, 0);
         instance.set(Calendar.MILLISECOND, 0);
-        Date monthEndTime = instance.getTime();
+        // 本月1号
         instance.set(Calendar.DAY_OF_MONTH, 1);
         Date monthStartTime = instance.getTime();
+        // 下个月1号
+        instance.add(Calendar.MONTH, 1);
+        Date monthEndTime = instance.getTime();
 
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostDayJob !   时间:" + DateUtils.now(), this.parameter));
