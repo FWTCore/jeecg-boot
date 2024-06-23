@@ -262,9 +262,7 @@ public class ProjectController {
         Result<List<BizProject>> result = new Result<>();
         LambdaQueryWrapper<BizProject> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(BizProject::getDelFlag, CommonConstant.DEL_FLAG_0.toString());
-        if (BooleanUtil.isTrue(remedy)) {
-            queryWrapper.in(BizProject::getProjectStatus, Arrays.asList("1", "10"));
-        }
+        queryWrapper.in(BizProject::getProjectStatus, Arrays.asList("1", "10", "20"));
         List<BizProject> list = projectService.list(queryWrapper);
         if (list == null || list.size() <= 0) {
             result.error500("未找到项目信息");

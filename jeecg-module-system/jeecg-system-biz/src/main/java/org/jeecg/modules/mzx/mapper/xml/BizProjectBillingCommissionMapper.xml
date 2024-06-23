@@ -12,7 +12,7 @@
                         bpbd.staff_id,
                         max(bpbd.staff)                                                  as staff,
                         sum(ifnull(bpbd.commission, 0))                                  as commission_ratio,
-                        bpb.implement_commission * sum(ifnull(bpbd.commission, 0)) / 100 as implement_commission,
+                        min(bpb.implement_commission) * sum(ifnull(bpbd.commission, 0)) / 100 as implement_commission,
                         0,null,now(),null,now()
         from biz_project_billing as bpb
                  inner join biz_project_billing_detail as bpbd on bpb.project_id = bpbd.project_id
