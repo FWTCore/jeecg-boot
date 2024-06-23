@@ -14,6 +14,13 @@ public interface BizProjectMapper extends BaseMapper<BizProject> {
      * @param userName
      */
     void updateProjectPayment(@Param("ids") List<String> ids,@Param("userName") String userName);
+
+    /**
+     * 更新项目 非结算项目
+     * @param ids
+     * @param userName
+     */
+    void updateProjectNotSettlement(@Param("ids") List<String> ids,@Param("userName") String userName);
     /**
      * 更新项目状态为结算中
      * @param ids

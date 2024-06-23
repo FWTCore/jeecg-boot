@@ -80,11 +80,11 @@ public class ProjectScheduleController {
         if (ObjectUtil.isNotNull(serviceLog.getProjectName())) {
             queryWrapper.like(BizProjectScheduleLog::getProjectName, serviceLog.getProjectName());
         }
+        if (ObjectUtil.isNotNull(serviceLog.getProjectId())) {
+            queryWrapper.eq(BizProjectScheduleLog::getProjectId, serviceLog.getProjectId());
+        }
         if (ObjectUtil.isNotNull(serviceLog.getScheduleName())) {
             queryWrapper.like(BizProjectScheduleLog::getScheduleName, serviceLog.getScheduleName());
-        }
-        if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
-            queryWrapper.like(BizProjectScheduleLog::getStaff, serviceLog.getStaff());
         }
         if (ObjectUtil.isNotNull(serviceLog.getStaff())) {
             queryWrapper.like(BizProjectScheduleLog::getStaff, serviceLog.getStaff());

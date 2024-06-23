@@ -22,6 +22,12 @@ public interface IBizProjectService extends IService<BizProject> {
     void updateProjectPayment(List<String> ids);
 
     /**
+     * 更新项目 非结算项目
+     * @param ids
+     */
+    void updateProjectNotSettlement(List<String> ids);
+
+    /**
      * 更新项目结算中
      * @param ids
      */

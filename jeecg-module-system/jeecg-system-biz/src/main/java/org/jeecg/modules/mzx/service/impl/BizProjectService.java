@@ -90,6 +90,15 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
     }
 
     @Override
+    public void updateProjectNotSettlement(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        projectMapper.updateProjectNotSettlement(ids, user.getRealname());
+    }
+
+    @Override
     public void updateProjectBilling(List<String> ids) {
         if (CollectionUtil.isEmpty(ids)) {
             return;

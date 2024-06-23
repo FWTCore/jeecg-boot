@@ -257,6 +257,26 @@ public class ProjectController {
         return result;
     }
 
+    /**
+     * @param ids
+     * @return
+     * @功能：批量回款
+     */
+    @ApiOperation("批量回款")
+    @RequiresPermissions("project:noSettlement")
+    @RequestMapping(value = "/noSettlementBatch", method = RequestMethod.POST)
+    public Result<String> noSettlementBatch(@RequestParam(name = "ids", required = true) String ids) {
+        Result<String> result = new Result<String>();
+        if (oConvertUtils.isEmpty(ids)) {
+            result.error500("参数不识别！");
+        } else {
+            projectService.updateProjectNotSettlement(Arrays.asList(ids.split(",")));
+            result.success("标记非结算成功!");
+        }
+        return result;
+    }
+
+
     @RequestMapping(value = "/queryall", method = RequestMethod.GET)
     public Result<List<BizProject>> queryall(@RequestParam(name = "remedy", required = false) Boolean remedy) {
         Result<List<BizProject>> result = new Result<>();

@@ -37,4 +37,16 @@
         </foreach>
         and project_status=25
     </update>
+
+    <update id="updateProjectNotSettlement">
+        update biz_project
+        set project_status=40,
+        update_by=#{userName},
+        update_time=now()
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and project_status in (1,10)
+    </update>
 </mapper>
