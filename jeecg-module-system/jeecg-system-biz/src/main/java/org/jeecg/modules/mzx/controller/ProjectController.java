@@ -1,11 +1,9 @@
 package org.jeecg.modules.mzx.controller;
 
-import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -24,19 +22,26 @@ import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectScheduleTemplate;
 import org.jeecg.modules.mzx.entity.BizProjectType;
 import org.jeecg.modules.mzx.service.IBizCustomerService;
+import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleTemplateService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.jeecg.modules.mzx.service.IBizProjectTypeService;
-import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.jeecg.modules.mzx.vo.ProjectVO;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @Api(tags = "项目管理")
 @RestController
@@ -53,6 +58,9 @@ public class ProjectController {
     private IBizProjectScheduleTemplateService projectScheduleTemplateService;
     @Autowired
     private IBizProjectTypeService projectTypeService;
+
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -106,6 +114,7 @@ public class ProjectController {
 
             projectVO.setLeaderName(sysUserEntity.getRealname());
             projectService.CreateProject(projectVO);
+            bizProjectChangeDetailService.insertOrUpdateData(projectVO.getId());
             result.success("保存成功！");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -126,13 +135,6 @@ public class ProjectController {
         if (data == null) {
             result.error500("未找到对应实体");
         } else {
-//            BizCustomer customerEntity = customerService.getById(projectVO.getCustomerId());
-//            if (customerEntity == null || customerEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
-//                throw new JeecgBootException("客户不存在");
-//            }
-//            data.setCustomerId(projectVO.getCustomerId());
-//            data.setCustomerId(customerEntity.getCustomerName());
-
             SysUser sysUserEntity = sysUserService.getById(projectVO.getSignPersonId());
             if (sysUserEntity == null || sysUserEntity.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
                 throw new JeecgBootException("签单人不存在");
@@ -168,6 +170,7 @@ public class ProjectController {
             data.setUpdateTime(new Date());
             boolean ok = projectService.updateById(data);
             if (ok) {
+                bizProjectChangeDetailService.insertOrUpdateData(data.getId());
                 result.success("编辑成功!");
             }
         }
@@ -186,7 +189,9 @@ public class ProjectController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            projectService.removeByIds(Arrays.asList(ids.split(",")));
+            List<String> idList = Arrays.asList(ids.split(","));
+            projectService.removeByIds(idList);
+            bizProjectChangeDetailService.insertOrUpdateData(idList);
             result.success("删除成功!");
         }
         return result;
@@ -205,6 +210,7 @@ public class ProjectController {
             result.error500("未找到对应实体");
         } else {
             projectService.removeById(id);
+            bizProjectChangeDetailService.insertOrUpdateData(id);
             result.success("删除成功!");
         }
         return result;
@@ -235,6 +241,7 @@ public class ProjectController {
         }
         project.setProjectStatus("10");
         projectService.updateById(project);
+        bizProjectChangeDetailService.insertOrUpdateData(projectVO.getId());
         return Result.ok();
     }
 
@@ -251,7 +258,9 @@ public class ProjectController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            projectService.updateProjectPayment(Arrays.asList(ids.split(",")));
+            List<String> idList = Arrays.asList(ids.split(","));
+            projectService.updateProjectPayment(idList);
+            bizProjectChangeDetailService.insertOrUpdateData(idList);
             result.success("回款成功!");
         }
         return result;
@@ -270,7 +279,9 @@ public class ProjectController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            projectService.updateProjectNotSettlement(Arrays.asList(ids.split(",")));
+            List<String> idList = Arrays.asList(ids.split(","));
+            projectService.updateProjectNotSettlement(idList);
+            bizProjectChangeDetailService.insertOrUpdateData(idList);
             result.success("标记非结算成功!");
         }
         return result;
@@ -292,6 +303,5 @@ public class ProjectController {
         }
         return result;
     }
-
 
 }

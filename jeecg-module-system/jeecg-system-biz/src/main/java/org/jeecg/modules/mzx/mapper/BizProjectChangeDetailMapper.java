@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.jeecg.modules.mzx.entity.BizProjectChangeDetail;
 
+import java.util.List;
+
 /**
  * 项目变更明细
  *

@@ -13,4 +13,5 @@
                   and detail.del_flag = 0
             );
     </insert>
+
 </mapper>

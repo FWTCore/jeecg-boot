@@ -24,6 +24,7 @@ import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomerServiceLog;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.entity.BizProjectCost;
+import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectCostService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.jeecg.modules.mzx.vo.ProjectCostQuery;
@@ -56,6 +57,8 @@ public class ProjectCostController {
     private IBizProjectCostService projectCostService;
     @Autowired
     private ISysDictService sysDictService;
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
     @Value("${jeecg.path.upload}")
     private String upLoadPath;
 
@@ -358,6 +361,7 @@ public class ProjectCostController {
                 projectCostService.updateBatchById(updateDataList);
                 result.success("保存成功！");
             }
+            bizProjectChangeDetailService.insertOrUpdateData(projectId);
         }
 
         return result;
@@ -381,6 +385,7 @@ public class ProjectCostController {
                     deleteCostData(id);
                 }
             }
+            bizProjectChangeDetailService.insertOrUpdateData(idData);
             result.success("删除成功!");
         }
         return result;
@@ -395,6 +400,7 @@ public class ProjectCostController {
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         Result<String> result = new Result<String>();
         deleteCostData(id);
+        bizProjectChangeDetailService.insertOrUpdateData(id);
         result.success("删除成功!");
         return result;
     }

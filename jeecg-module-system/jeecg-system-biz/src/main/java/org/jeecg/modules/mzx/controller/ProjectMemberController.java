@@ -12,6 +12,7 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizCustomer;
 import org.jeecg.modules.mzx.entity.BizProjectMember;
+import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectMemberService;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 @Api(tags = "项目成员")
 @RestController
@@ -32,6 +34,8 @@ public class ProjectMemberController {
     private IBizProjectMemberService projectMemberService;
     @Autowired
     private ISysUserService sysUserService;
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
 
     @ApiOperation("获取列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -63,6 +67,8 @@ public class ProjectMemberController {
             projectMember.setCreateTime(new Date());
             projectMember.setDelFlag(CommonConstant.DEL_FLAG_0);
             projectMemberService.save(projectMember);
+
+            bizProjectChangeDetailService.insertOrUpdateData(projectMember.getProjectId());
             result.success("保存成功！");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -86,6 +92,7 @@ public class ProjectMemberController {
             data.setUpdateTime(new Date());
             boolean ok = projectMemberService.updateById(projectMember);
             if (ok) {
+                bizProjectChangeDetailService.insertOrUpdateData(projectMember.getProjectId());
                 result.success("编辑成功!");
             }
         }
@@ -105,7 +112,9 @@ public class ProjectMemberController {
         if (oConvertUtils.isEmpty(ids)) {
             result.error500("参数不识别！");
         } else {
-            projectMemberService.removeByIds(Arrays.asList(ids.split(",")));
+            List<String> idList = Arrays.asList(ids.split(","));
+            projectMemberService.removeByIds(idList);
+            bizProjectChangeDetailService.insertOrUpdateData(idList);
             result.success("删除成功!");
         }
         return result;
@@ -124,6 +133,7 @@ public class ProjectMemberController {
             result.error500("未找到对应实体");
         } else {
             projectMemberService.removeById(id);
+            bizProjectChangeDetailService.insertOrUpdateData(id);
             result.success("删除成功!");
         }
         return result;

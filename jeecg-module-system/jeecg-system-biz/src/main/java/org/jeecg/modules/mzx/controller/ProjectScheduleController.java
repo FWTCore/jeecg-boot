@@ -53,6 +53,8 @@ public class ProjectScheduleController {
     private IBizProjectScheduleLogService projectScheduleLogService;
     @Autowired
     private IBizWorkHoursService bizWorkHoursService;
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
 
 
     @RequestMapping(value = "/queryByProjectId", method = RequestMethod.GET)
@@ -188,6 +190,8 @@ public class ProjectScheduleController {
                     projectScheduleLogService.save(projectScheduleLog);
                 }
                 result.success("保存成功！");
+
+                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId());
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -255,6 +259,7 @@ public class ProjectScheduleController {
                 data.setNextPlanTime(projectScheduleLog.getNextPlanTime());
                 data.setUpdateTime(new Date());
                 projectScheduleLogService.updateById(data);
+                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId());
                 result.success("编辑成功!");
             }
         }
@@ -284,6 +289,8 @@ public class ProjectScheduleController {
                 }
             }
             projectScheduleLogService.removeByIds(idList);
+
+            bizProjectChangeDetailService.insertOrUpdateData(idList);
             result.success("删除成功!");
         }
         return result;
@@ -310,6 +317,7 @@ public class ProjectScheduleController {
                 }
             }
             projectScheduleLogService.removeById(id);
+            bizProjectChangeDetailService.insertOrUpdateData(id);
             result.success("删除成功!");
         }
         return result;
