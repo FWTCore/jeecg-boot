@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectChangeDetailMapper">
+    <insert id="insertOrUpdateData">
+        insert into biz_project_change_detail(id, project_id, trigger_period, del_flag)
+        select replace(uuid(), '-', ''), mainData.project_id, mainData.trigger_period, 0
+        from (select #{projectId} as project_id, #{triggerPeriod} as trigger_period) as mainData
+        where not exists(
+                select 1
+                from biz_project_change_detail as detail
+                where mainData.project_id = detail.project_id
+                  and mainData.trigger_period = detail.trigger_period
+                  and detail.del_flag = 0
+            );
+    </insert>
+</mapper>
