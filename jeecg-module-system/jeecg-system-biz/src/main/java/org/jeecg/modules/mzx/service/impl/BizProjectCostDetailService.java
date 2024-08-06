@@ -87,6 +87,8 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
         }
         if (CollectionUtil.isEmpty(userList)) {
             log.info("无项目人工成本数据生成");
+            // 清理数据
+            projectCostDetailMapper.clearProjectCostDetail(projectIdList, period);
             return;
         }
         // 获取员工的薪资
