@@ -21,18 +21,6 @@ public interface BizProjectCostCalculateMapper extends BaseMapper<BizProjectCost
 
 
     /**
-     * 获取需要计算成本项目id列表
-     * 监控表 创建或变动
-     * biz_project_cost_detail
-     *
-     * @param startTime
-     * @param endTime
-     * @return
-     */
-    List<String> listMonitorProjectCost(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
-
-
-    /**
      * 统计 指定项目的项目人工成本核算 累计
      *
      * @param projectIds

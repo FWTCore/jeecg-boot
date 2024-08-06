@@ -16,12 +16,11 @@ public interface IBizProjectCostDetailService extends IService<BizProjectCostDet
 
 
     /**
-     * 项目人工成本 生成 ，开始时间和结束时间 为本月数据
+     * 项目人工成本 生成
      *
-     * @param startTime
-     * @param endTime
+     * @param dateTime
      */
-    void initProjectCostDetail(Date startTime, Date endTime);
+    void initProjectCostDetail(Date dateTime);
 
 
 }

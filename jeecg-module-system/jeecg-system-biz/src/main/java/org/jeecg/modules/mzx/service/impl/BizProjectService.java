@@ -67,6 +67,7 @@ public class BizProjectService extends ServiceImpl<BizProjectMapper, BizProject>
         projectEntity.setDelFlag(CommonConstant.DEL_FLAG_0);
         projectEntity.setCreateTime(new Date());
         this.save(projectEntity);
+        projectVO.setId(projectEntity.getId());
 
         LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         ProjectScheduleUsageDTO projectScheduleUsageDTO = new ProjectScheduleUsageDTO();

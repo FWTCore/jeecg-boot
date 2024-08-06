@@ -2,19 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.mzx.mapper.BizProjectCostCalculateMapper">
 
-    <select id="listMonitorProjectCost" resultType="java.lang.String">
-        select distinct project_id as projectId
-        from biz_project_cost_detail
-        where (
-                    created_time >= #{startTime}
-                and #{endTime} > created_time
-            )
-           or (
-                    update_time >= #{startTime}
-                and #{endTime} > update_time
-            )
-    </select>
-
     <insert id="insertProjectCostCalculate">
         drop temporary table if exists temp_project_cost_calculate;
         create temporary table temp_project_cost_calculate

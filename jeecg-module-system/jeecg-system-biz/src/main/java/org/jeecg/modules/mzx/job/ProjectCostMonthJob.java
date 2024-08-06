@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 项目成本job 月维度
@@ -49,27 +50,20 @@ public class ProjectCostMonthJob implements Job {
         // 上一月 起止时间
         Calendar instance = Calendar.getInstance();
         if (StringUtils.isNotBlank(this.parameter)) {
-            DateTime parseDate = DateUtil.parse(this.parameter);
-            instance.setTime(parseDate);
+            instance.setTime(Objects.requireNonNull(DateUtils.parseDatetime(this.parameter)));
         }
-        instance.set(Calendar.DAY_OF_MONTH, 1);
-        instance.set(Calendar.HOUR_OF_DAY, 0);
-        instance.set(Calendar.MINUTE, 0);
-        instance.set(Calendar.SECOND, 0);
-        instance.set(Calendar.MILLISECOND, 0);
-
-        Date lastMonthEndTime = instance.getTime();
         instance.add(Calendar.MONTH, -1);
-        Date lastMonthStartTime = instance.getTime();
+        Date executeTime = instance.getTime();
 
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostMonthJob !   时间:" + DateUtils.now(), this.parameter));
         try {
-            log.info(String.format(" 处理时间【%s-%s】", DateUtils.date2Str(lastMonthStartTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(lastMonthEndTime, DateUtils.yyyymmddhhmmss.get())));
+            log.info(String.format(" 处理时间【%s】", DateUtils.date2Str(instance.getTime(), DateUtils.yyyyMMdd.get())));
+
             // 项目人工成本核算
-            projectCostDetailService.initProjectCostDetail(lastMonthStartTime, lastMonthEndTime);
+            projectCostDetailService.initProjectCostDetail(executeTime);
             // 项目成本核算
-            projectCostCalculateService.initProjectCostCalculate(lastMonthStartTime, lastMonthEndTime);
+            projectCostCalculateService.initProjectCostCalculate(executeTime);
         } catch (Exception exception) {
             log.error("任务 ProjectCostDayJob 异常", exception);
         }

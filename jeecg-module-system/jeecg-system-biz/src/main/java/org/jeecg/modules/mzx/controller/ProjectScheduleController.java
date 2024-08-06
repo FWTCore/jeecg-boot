@@ -191,7 +191,7 @@ public class ProjectScheduleController {
                 }
                 result.success("保存成功！");
 
-                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId());
+                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId(), projectScheduleLog.getCreateTime());
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -259,7 +259,7 @@ public class ProjectScheduleController {
                 data.setNextPlanTime(projectScheduleLog.getNextPlanTime());
                 data.setUpdateTime(new Date());
                 projectScheduleLogService.updateById(data);
-                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId());
+                bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId(), data.getCreateTime());
                 result.success("编辑成功!");
             }
         }

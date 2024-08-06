@@ -20,20 +20,11 @@ public interface BizProjectCostDetailMapper extends BaseMapper<BizProjectCostDet
 
     /**
      * 获取需要计算成本项目id列表
-     * 监控表 创建或变动
-     * biz_project
-     * biz_project_cost
-     * biz_project_member
-     * biz_project_schedule_item_usage
-     * biz_project_schedule_log
-     * biz_project_schedule_usage
-     * biz_project_cost_detail
      *
-     * @param startTime
-     * @param endTime
+     * @param period
      * @return
      */
-    List<String> listMonitorCostProject(@Param("startTime") Date startTime, @Param("endTime") Date endTime, @Param("period") Integer period);
+    List<String> listMonitorCostProject(@Param("period") Integer period);
 
     /**
      * 新增数据

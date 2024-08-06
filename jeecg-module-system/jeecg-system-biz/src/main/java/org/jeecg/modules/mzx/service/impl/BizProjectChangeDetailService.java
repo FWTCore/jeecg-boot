@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -39,7 +41,7 @@ public class BizProjectChangeDetailService extends ServiceImpl<BizProjectChangeD
         }
 
         Calendar cal = Calendar.getInstance();
-        Integer triggerPeriod = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
+        Integer triggerPeriod = cal.get(Calendar.YEAR) * 100 + (cal.get(Calendar.MONTH) + 1);
         insertOrUpdateData(projectId, triggerPeriod);
 
     }
@@ -50,9 +52,20 @@ public class BizProjectChangeDetailService extends ServiceImpl<BizProjectChangeD
             return;
         }
         Calendar cal = Calendar.getInstance();
-        Integer triggerPeriod = cal.get(Calendar.YEAR) * 10000 + (cal.get(Calendar.MONTH) + 1) * 100 + cal.get(Calendar.DAY_OF_MONTH);
+        Integer triggerPeriod = cal.get(Calendar.YEAR) * 100 + (cal.get(Calendar.MONTH) + 1);
         for (String projectId : projectIds) {
             insertOrUpdateData(projectId, triggerPeriod);
         }
+    }
+
+    @Override
+    public void insertOrUpdateData(String projectId, Date triggerPeriodDate) {
+        if (StringUtils.isBlank(projectId) || ObjectUtil.isNull(triggerPeriodDate)) {
+            return;
+        }
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(triggerPeriodDate);
+        Integer triggerPeriod = cal.get(Calendar.YEAR) * 100 + (cal.get(Calendar.MONTH) + 1);
+        insertOrUpdateData(projectId, triggerPeriod);
     }
 }

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jeecg.common.util.DateUtils;
 import org.jeecg.modules.mzx.entity.*;
 import org.jeecg.modules.mzx.mapper.BizProjectCostCalculateMapper;
+import org.jeecg.modules.mzx.mapper.BizProjectCostDetailMapper;
 import org.jeecg.modules.mzx.model.ProjectCostModel;
 import org.jeecg.modules.mzx.service.IBizProjectCostCalculateService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
@@ -33,17 +34,24 @@ public class BizProjectCostCalculateService extends ServiceImpl<BizProjectCostCa
     private BizProjectCostCalculateMapper projectCostCalculateMapper;
     @Autowired
     private IBizProjectService projectService;
+    @Autowired
+    private BizProjectCostDetailMapper projectCostDetailMapper;
 
 
     @Override
-    public void initProjectCostCalculate(Date startTime, Date endTime) {
+    public void initProjectCostCalculate(Date dateTime) {
 
+        Calendar instance = Calendar.getInstance();
+        instance.setTime(dateTime);
+        // 周期
+        Integer period = instance.get(Calendar.YEAR) * 100 + instance.get(Calendar.MONTH) + 1;
         // 确定需要处理的项目数据
-        List<String> projectIdList = projectCostCalculateMapper.listMonitorProjectCost(startTime, endTime);
+        List<String> projectIdList = projectCostDetailMapper.listMonitorCostProject(period);
         if (CollectionUtil.isEmpty(projectIdList)) {
-            log.info(String.format("时间【%s-%s】无项目数据变动", DateUtils.date2Str(startTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(endTime, DateUtils.yyyymmddhhmmss.get())));
+            log.info(String.format("时间【%s】无项目数据变动", DateUtils.date2Str(dateTime, DateUtils.yyyyMMdd.get())));
             return;
         }
+
         List<BizProject> projectList = listProject(projectIdList);
 
         // 获取指定项目的项目人力成本

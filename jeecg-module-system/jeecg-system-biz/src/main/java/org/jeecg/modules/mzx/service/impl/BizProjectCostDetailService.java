@@ -1,6 +1,7 @@
 package org.jeecg.modules.mzx.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -45,19 +46,25 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
     @Autowired
     private IBizProjectService projectService;
 
-
     @Override
-    public void initProjectCostDetail(Date startTime, Date endTime) {
+    public void initProjectCostDetail(Date dateTime) {
         Calendar instance = Calendar.getInstance();
-        instance.setTime(startTime);
+        instance.setTime(dateTime);
         // 周期
         Integer period = instance.get(Calendar.YEAR) * 100 + instance.get(Calendar.MONTH) + 1;
         // 确定需要处理的项目数据
-        List<String> projectIdList = projectCostDetailMapper.listMonitorCostProject(startTime, endTime, period);
+        List<String> projectIdList = projectCostDetailMapper.listMonitorCostProject(period);
         if (CollectionUtil.isEmpty(projectIdList)) {
-            log.info(String.format("时间【%s-%s】无项目数据变动", DateUtils.date2Str(startTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(endTime, DateUtils.yyyymmddhhmmss.get())));
+            log.info(String.format("时间【%s】无项目数据变动", DateUtils.date2Str(dateTime, DateUtils.yyyyMMdd.get())));
             return;
         }
+
+        // 开始时间
+        Date startTime = DateUtil.beginOfMonth(dateTime);
+        // 结束时间
+        instance.setTime(startTime);
+        instance.set(Calendar.MONTH, 1);
+        Date endTime = instance.getTime();
 
         // 员工id
         Set<String> employeeIdSet = new HashSet<>();

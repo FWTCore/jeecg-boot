@@ -16,11 +16,9 @@ public interface IBizProjectCostCalculateService extends IService<BizProjectCost
 
 
     /**
-     * 项目成本 生成 ，开始时间和结束时间 为本月数据
-     *
-     * @param startTime
-     * @param endTime
+     * 项目成本 生成
+     * @param dateTime
      */
-    void initProjectCostCalculate(Date startTime, Date endTime);
+    void initProjectCostCalculate(Date dateTime);
 }
 

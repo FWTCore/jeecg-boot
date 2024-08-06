@@ -1,7 +1,10 @@
 package org.jeecg.modules.mzx.job;
 
+import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jeecg.common.util.DateUtils;
+import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectCostCalculateService;
 import org.jeecg.modules.mzx.service.IBizProjectCostDetailService;
 import org.quartz.Job;
@@ -40,30 +43,27 @@ public class ProjectCostDayJob implements Job {
     @Autowired
     private IBizProjectCostDetailService projectCostDetailService;
 
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
+
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        // 本月的起止时间
+        // 本月时间
         Calendar instance = Calendar.getInstance();
-        instance.set(Calendar.HOUR_OF_DAY, 0);
-        instance.set(Calendar.MINUTE, 0);
-        instance.set(Calendar.SECOND, 0);
-        instance.set(Calendar.MILLISECOND, 0);
-        // 本月1号
-        instance.set(Calendar.DAY_OF_MONTH, 1);
-        Date monthStartTime = instance.getTime();
-        // 下个月1号
-        instance.add(Calendar.MONTH, 1);
-        Date monthEndTime = instance.getTime();
+        Date executeTime = instance.getTime();
+        if (StringUtils.isNotBlank(this.parameter)) {
+            executeTime = DateUtils.parseDatetime(this.parameter);
+        }
 
         log.info(" Job Execution key：" + jobExecutionContext.getJobDetail().getKey());
         log.info(String.format("welcome %s!  带参数定时任务 ProjectCostDayJob !   时间:" + DateUtils.now(), this.parameter));
         try {
-            log.info(String.format(" 处理时间【%s-%s】", DateUtils.date2Str(monthStartTime, DateUtils.yyyymmddhhmmss.get()), DateUtils.date2Str(monthEndTime, DateUtils.yyyymmddhhmmss.get())));
+            log.info(String.format(" 处理时间【%s】", DateUtils.date2Str(instance.getTime(), DateUtils.yyyyMMdd.get())));
 
             // 项目人工成本核算
-            projectCostDetailService.initProjectCostDetail(monthStartTime, monthEndTime);
+            projectCostDetailService.initProjectCostDetail(executeTime);
             // 项目成本核算
-            projectCostCalculateService.initProjectCostCalculate(monthStartTime, monthEndTime);
+            projectCostCalculateService.initProjectCostCalculate(executeTime);
         } catch (Exception exception) {
             log.error("任务 ProjectCostDayJob 异常", exception);
         }

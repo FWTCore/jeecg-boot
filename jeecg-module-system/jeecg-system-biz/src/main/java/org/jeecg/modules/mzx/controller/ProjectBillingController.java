@@ -55,6 +55,8 @@ public class ProjectBillingController {
     private IBizProjectBillingCommissionService bizProjectBillingCommissionService;
     @Autowired
     private IBizProjectScheduleItemUsageService projectScheduleItemUsageService;
+    @Autowired
+    private IBizProjectChangeDetailService bizProjectChangeDetailService;
 
 
     @ApiOperation("获取列表")
@@ -220,6 +222,7 @@ public class ProjectBillingController {
             projectBillingService.updateById(data);
             // 生成项目结算提成
             bizProjectBillingCommissionService.generateProjectBillingCommission(data.getProjectId());
+            bizProjectChangeDetailService.insertOrUpdateData(data.getProjectId());
             result.success("审批成功!");
         }
         return result;
@@ -253,6 +256,7 @@ public class ProjectBillingController {
         projectBillingService.updateProjectBillingFinish(projectIdList);
         projectService.updateProjectFinish(projectIdList);
         bizProjectBillingCommissionService.updateProjectBillingCommissionFinish(projectIdList);
+        bizProjectChangeDetailService.insertOrUpdateData(projectIdList);
         result.success("发放成功!");
         return result;
     }

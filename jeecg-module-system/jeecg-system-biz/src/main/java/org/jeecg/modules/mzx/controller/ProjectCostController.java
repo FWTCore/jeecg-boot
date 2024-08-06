@@ -385,7 +385,6 @@ public class ProjectCostController {
                     deleteCostData(id);
                 }
             }
-            bizProjectChangeDetailService.insertOrUpdateData(idData);
             result.success("删除成功!");
         }
         return result;
@@ -400,7 +399,6 @@ public class ProjectCostController {
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         Result<String> result = new Result<String>();
         deleteCostData(id);
-        bizProjectChangeDetailService.insertOrUpdateData(id);
         result.success("删除成功!");
         return result;
     }
@@ -424,6 +422,7 @@ public class ProjectCostController {
         lambdaQueryWrapper.eq(BizProjectCost::getStaffId, idData[1]);
         lambdaQueryWrapper.eq(BizProjectCost::getPeriod, period);
         projectCostService.remove(lambdaQueryWrapper);
+        bizProjectChangeDetailService.insertOrUpdateData(idData[0]);
     }
 
 
