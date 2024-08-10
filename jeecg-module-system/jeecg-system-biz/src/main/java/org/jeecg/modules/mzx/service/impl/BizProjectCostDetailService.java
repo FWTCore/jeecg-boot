@@ -63,7 +63,7 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
         Date startTime = DateUtil.beginOfMonth(dateTime);
         // 结束时间
         instance.setTime(startTime);
-        instance.set(Calendar.MONTH, 1);
+        instance.add(Calendar.MONTH, 1);
         Date endTime = instance.getTime();
 
         // 员工id
@@ -98,28 +98,26 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
 
         // 项目补助
         List<BizProjectCostDetail> projectCostDetails = new ArrayList<>();
-        userList.forEach(user -> {
-            // 当前用户项目id
-            Set<String> userProjectIdSet = new HashSet<>();
-            // 项目补助
-            userProjectIdSet.addAll(employeeProjectCostList.stream().filter(e -> e.getStaffId().equals(user.getId())).map(BizProjectCost::getProjectId).collect(Collectors.toList()));
-            // 项目日志
-            userProjectIdSet.addAll(scheduleLogList.stream().filter(e -> e.getStaffId().equals(user.getId())).map(BizProjectScheduleLog::getProjectId).collect(Collectors.toList()));
-
-            List<String> userProjectIdList = new ArrayList<>(userProjectIdSet);
-            if (CollectionUtil.isNotEmpty(userProjectIdList)) {
-                userProjectIdList.forEach(projectId -> {
-                    Optional<BizProject> projectOptional = projectList.stream().filter(e -> e.getId().equals(projectId)).findFirst();
-                    if (projectOptional.isPresent()) {
-                        BizProject project = projectOptional.get();
+        for (String projectId : projectIdList) {
+            Optional<BizProject> projectOptional = projectList.stream().filter(e -> e.getId().equals(projectId)).findFirst();
+            if (projectOptional.isPresent()) {
+                BizProject project = projectOptional.get();
+                // 获取有该项目的用户
+                List<String> ProjectUserIdList = new ArrayList<>();
+                ProjectUserIdList.addAll(employeeProjectCostList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectCost::getStaffId).collect(Collectors.toList()));
+                ProjectUserIdList.addAll(scheduleLogList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectScheduleLog::getStaffId).collect(Collectors.toList()));
+                for (String userId : ProjectUserIdList) {
+                    Optional<SysUser> userOptional = userList.stream().filter(e -> e.getId().equals(userId)).findFirst();
+                    if (userOptional.isPresent()) {
+                        SysUser user = userOptional.get();
                         BizProjectCostDetail tempData = structureProjectCostDetail(user, project, employeeSalaryList, employeeProjectCostList, scheduleLogList);
                         tempData.setId(UUID.randomUUID().toString().replace("-", ""));
                         tempData.setPeriod(period);
                         projectCostDetails.add(tempData);
                     }
-                });
+                }
             }
-        });
+        }
 
         if (CollectionUtil.isNotEmpty(projectCostDetails)) {
             // 先更新
