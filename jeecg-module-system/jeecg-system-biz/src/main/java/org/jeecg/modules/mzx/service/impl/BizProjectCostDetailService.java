@@ -103,10 +103,11 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             if (projectOptional.isPresent()) {
                 BizProject project = projectOptional.get();
                 // 获取有该项目的用户
-                List<String> ProjectUserIdList = new ArrayList<>();
-                ProjectUserIdList.addAll(employeeProjectCostList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectCost::getStaffId).collect(Collectors.toList()));
-                ProjectUserIdList.addAll(scheduleLogList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectScheduleLog::getStaffId).collect(Collectors.toList()));
-                for (String userId : ProjectUserIdList) {
+                Set<String> projectUserIdSet = new HashSet<>();
+                projectUserIdSet.addAll(employeeProjectCostList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectCost::getStaffId).collect(Collectors.toList()));
+                projectUserIdSet.addAll(scheduleLogList.stream().filter(e -> e.getProjectId().equals(projectId)).map(BizProjectScheduleLog::getStaffId).collect(Collectors.toList()));
+                List<String> projectUserIdList = new ArrayList<>(projectUserIdSet);
+                for (String userId : projectUserIdList) {
                     Optional<SysUser> userOptional = userList.stream().filter(e -> e.getId().equals(userId)).findFirst();
                     if (userOptional.isPresent()) {
                         SysUser user = userOptional.get();
