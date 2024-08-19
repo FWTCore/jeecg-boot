@@ -6,51 +6,55 @@
         (id, project_id, project_name, project_schedule_usage_item_id, schedule_name,
         staff_id, staff, commission, service_flag, del_flag, create_by,
         created_time, update_by, update_time)
-        select distinct replace(uuid(), '-', ''),
-            maindata.project_id, maindata.project_name,
-            maindata.project_schedule_usage_item_id, maindata.schedule_name,
-            maindata.staff_id, maindata.staff,
-            0                         as commission,
-            IF(bpsl.id is null, 0, 1) as service_flag,
-            0,null,now(),null,now()
+        select replace(uuid(), '-', ''),project_id,project_name,project_schedule_usage_item_id,schedule_name,
+        staff_id,staff,0 as commission,service_flag,0,null,
+        now(),null,now()
         from (
-            select distinct projectSchedule.project_id,
-                projectStaff.project_name,
-                projectSchedule.project_schedule_usage_item_id,
-                projectSchedule.item_name as schedule_name,
-                projectStaff.staff_id,
-                projectStaff.staff
-            from (
-                    select bpsiu.project_id,
-                        bpsiu.id as project_schedule_usage_item_id,
-                        bpsiu.item_name
-                    from biz_project_schedule_item_usage as bpsiu
-                    where bpsiu.project_id in
-                        <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
-                            #{projectId}
-                        </foreach>
-                ) as projectSchedule
-                inner join
-                (
-                    select project_id,
-                        project_name,
-                        staff_id,
-                        staff
-                    from biz_project_schedule_log
-                    where del_flag = 0 and project_id in
-                    <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
-                        #{projectId}
-                    </foreach>
-                ) as projectStaff on projectSchedule.project_id = projectStaff.project_id
+        select distinct maindata.project_id, maindata.project_name,
+        maindata.project_schedule_usage_item_id, maindata.schedule_name,
+        maindata.staff_id, maindata.staff, IF(bpsl.id is null, 0, 1) as service_flag
+        from (
+        select distinct projectSchedule.project_id,
+        projectStaff.project_name,
+        projectSchedule.project_schedule_usage_item_id,
+        projectSchedule.item_name as schedule_name,
+        projectStaff.staff_id,
+        projectStaff.staff
+        from (
+        select bpsiu.project_id,
+        bpsiu.id as project_schedule_usage_item_id,
+        bpsiu.item_name
+        from biz_project_schedule_item_usage as bpsiu
+        where bpsiu.project_id in
+        <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
+            #{projectId}
+        </foreach>
+        ) as projectSchedule
+        inner join
+        (
+        select project_id,
+        project_name,
+        staff_id,
+        staff
+        from biz_project_schedule_log
+        where del_flag = 0 and project_id in
+        <foreach collection="projectIds" item="projectId" open="(" close=")" separator=",">
+            #{projectId}
+        </foreach>
+        ) as projectStaff on projectSchedule.project_id = projectStaff.project_id
         ) as maindata
-        left join biz_project_schedule_log as bpsl on maindata.project_id = bpsl.project_id and maindata.project_schedule_usage_item_id = bpsl.project_schedule_usage_item_id and maindata.staff_id = bpsl.staff_id
+        left join biz_project_schedule_log as bpsl on maindata.project_id = bpsl.project_id and
+        maindata.project_schedule_usage_item_id = bpsl.project_schedule_usage_item_id and maindata.staff_id =
+        bpsl.staff_id
         where not exists(
-            select 1
-            from biz_project_billing_detail bpcc
-            where bpcc.project_id = maindata.project_id
-            and bpcc.project_schedule_usage_item_id = maindata.project_schedule_usage_item_id
-            and bpcc.staff_id = maindata.staff_id
-            and bpcc.del_flag = 0
-        );
+        select 1
+        from biz_project_billing_detail bpcc
+        where bpcc.project_id = maindata.project_id
+        and bpcc.project_schedule_usage_item_id = maindata.project_schedule_usage_item_id
+        and bpcc.staff_id = maindata.staff_id
+        and bpcc.del_flag = 0
+        )
+        ) as maindata
+        ;
     </insert>
 </mapper>
