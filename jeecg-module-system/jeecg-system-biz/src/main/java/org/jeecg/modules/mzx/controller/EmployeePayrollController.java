@@ -69,6 +69,8 @@ public class EmployeePayrollController {
         queryWrapper.orderByDesc("period").orderByDesc("update_time");
         Page<BizEmployeePayroll> page = new Page<BizEmployeePayroll>(pageNo, pageSize);
         IPage<BizEmployeePayroll> pageList = bizEmployeePayrollService.page(page, queryWrapper);
+        structureImplementCommission(pageList.getRecords());
+
         result.setSuccess(true);
         result.setResult(pageList);
         return result;
@@ -90,17 +92,60 @@ public class EmployeePayrollController {
         ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
 
         List<BizEmployeePayroll> list = bizEmployeePayrollService.list(queryWrapper);
-
+        structureImplementCommission(list);
         //导出文件名称
         mv.addObject(NormalExcelConstants.FILE_NAME, "员工工资列表");
         mv.addObject(NormalExcelConstants.CLASS, BizEmployeePayroll.class);
         LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        ExportParams exportParams = new ExportParams("员工工资列表", "导出人:"+user.getRealname(), "导出信息");
+        ExportParams exportParams = new ExportParams("员工工资列表", "导出人:" + user.getRealname(), "导出信息");
         exportParams.setImageBasePath(upLoadPath);
         mv.addObject(NormalExcelConstants.PARAMS, exportParams);
         mv.addObject(NormalExcelConstants.DATA_LIST, list);
         return mv;
 
+    }
+
+    /**
+     * 计算项目提成
+     *
+     * @param dataList
+     * @return
+     */
+    private void structureImplementCommission(List<BizEmployeePayroll> dataList) {
+        if (CollectionUtil.isEmpty(dataList)) {
+            return;
+        }
+        List<String> userIds = dataList.stream().map(BizEmployeePayroll::getEmployeeId).distinct().collect(Collectors.toList());
+        List<Integer> periods = dataList.stream().map(BizEmployeePayroll::getPeriod).distinct().collect(Collectors.toList());
+        Map<String, BigDecimal> stringBigDecimalMap = calculateImplementCommission(userIds, periods);
+        for (BizEmployeePayroll data : dataList) {
+            String key = data.getEmployeeId() + "_" + data.getPeriod();
+            data.setImplementCommission(stringBigDecimalMap.getOrDefault(key, BigDecimal.ZERO));
+        }
+    }
+
+    /**
+     * 计算项目提成
+     *
+     * @param userIds
+     * @param periods
+     * @return
+     */
+    private Map<String, BigDecimal> calculateImplementCommission(List<String> userIds, List<Integer> periods) {
+        LambdaQueryWrapper<BizProjectBillingCommission> bizProjectBillingCommissionLambdaQueryWrapper = new LambdaQueryWrapper<BizProjectBillingCommission>();
+        bizProjectBillingCommissionLambdaQueryWrapper.in(BizProjectBillingCommission::getStaffId, userIds);
+        bizProjectBillingCommissionLambdaQueryWrapper.in(BizProjectBillingCommission::getPeriod, periods);
+        bizProjectBillingCommissionLambdaQueryWrapper.eq(BizProjectBillingCommission::getDelFlag, CommonConstant.DEL_FLAG_0);
+        List<BizProjectBillingCommission> projectBillingCommissionList = bizProjectBillingCommissionService.list(bizProjectBillingCommissionLambdaQueryWrapper);
+        Map<String, BigDecimal> commissionByPeriod = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(projectBillingCommissionList)) {
+            commissionByPeriod = projectBillingCommissionList.stream()
+                    .collect(Collectors.groupingBy(item -> item.getStaffId() + "_" + item.getPeriod(),
+                            Collectors.reducing(BigDecimal.ZERO, BizProjectBillingCommission::getImplementCommission, BigDecimal::add)));
+
+
+        }
+        return commissionByPeriod;
     }
 
 

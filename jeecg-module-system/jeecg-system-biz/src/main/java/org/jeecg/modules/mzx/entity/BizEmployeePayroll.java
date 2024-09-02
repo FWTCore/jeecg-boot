@@ -135,6 +135,14 @@ public class BizEmployeePayroll implements Serializable {
      */
     @Excel(name = "综合薪资", width = 15)
     private BigDecimal comprehensivePayroll;
+
+    /**
+     * 项目提成
+     */
+    @Excel(name = "项目提成", width = 15)
+    @TableField(exist = false)
+    private BigDecimal implementCommission;
+
     /**
      * 周期
      */

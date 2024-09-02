@@ -80,6 +80,7 @@ public class ProjectController {
      * @return
      * @功能：新增
      */
+    @RequiresPermissions("project:modify")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public Result<ProjectVO> add(@RequestBody ProjectVO projectVO) {
         Result<ProjectVO> result = new Result<ProjectVO>();
@@ -128,6 +129,7 @@ public class ProjectController {
      * @return
      * @功能：编辑
      */
+    @RequiresPermissions("project:modify")
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result<ProjectVO> edit(@RequestBody ProjectVO projectVO) {
         Result<ProjectVO> result = new Result<ProjectVO>();
@@ -183,6 +185,7 @@ public class ProjectController {
      * @功能：批量删除
      */
     @ApiOperation("批量删除")
+    @RequiresPermissions("project:modify")
     @RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
     public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         Result<String> result = new Result<String>();
@@ -202,6 +205,7 @@ public class ProjectController {
      * @return
      * @功能：删除
      */
+    @RequiresPermissions("project:modify")
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         Result<String> result = new Result<String>();
