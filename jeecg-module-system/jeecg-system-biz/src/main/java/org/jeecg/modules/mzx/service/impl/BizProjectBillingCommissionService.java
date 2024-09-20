@@ -45,8 +45,8 @@ public class BizProjectBillingCommissionService extends ServiceImpl<BizProjectBi
         }
         Calendar instance = Calendar.getInstance();
         Integer period = instance.get(Calendar.YEAR) * 100 + instance.get(Calendar.MONTH) + 1;
-        // 20号发提成，20号之后，算到本月
-        if (instance.get(Calendar.DAY_OF_MONTH) < 18) {
+        // 23号发提成，23号之后，算到本月
+        if (instance.get(Calendar.DAY_OF_MONTH) < 23) {
             period = period - 1;
         }
         LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
