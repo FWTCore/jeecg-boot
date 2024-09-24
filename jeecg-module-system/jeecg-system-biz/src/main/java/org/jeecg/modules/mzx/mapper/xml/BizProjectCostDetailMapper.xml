@@ -78,7 +78,7 @@
         drop temporary table if exists temp_project_cost_detail;
     </update>
 
-    <update id="clearProjectCostDetail">
+    <update id="clearProjectCostDetailForProject">
         update biz_project_cost_detail
         set comprehensive_subsidy=0,
         project_subsidy=0,
@@ -90,5 +90,41 @@
         <foreach collection="projectIds" item="item" open="(" separator="," close=")">
             #{item}
         </foreach>
+    </update>
+
+    <update id="clearProjectCostDetailForData">
+        drop temporary table if exists temp_project_cost_detail;
+        create temporary table temp_project_cost_detail
+        (
+        project_id varchar(32),
+        project_name varchar(100),
+        `period` int null,
+        employee_id varchar(32),
+        employee_name varchar(100),
+        work_days decimal(8, 2),
+        comprehensive_subsidy decimal(20, 4),
+        labor_cost decimal(20, 4),
+        project_subsidy decimal(20, 4)
+        );
+        insert into temp_project_cost_detail(project_id, project_name, `period`, employee_id, employee_name,
+        work_days,comprehensive_subsidy, labor_cost, project_subsidy)
+        values
+        <foreach collection="dataList" item="data" separator=",">
+            (#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost},#{data.projectSubsidy})
+        </foreach>
+        ;
+        update biz_project_cost_detail as bpcd
+        set comprehensive_subsidy=0,
+        project_subsidy=0,
+        labor_cost=0,
+        work_days=0,
+        update_time=now()
+        where not exists (
+        select 1
+        from temp_project_cost_detail as tep
+        where bpcd.project_id = tep.project_id and bpcd.`period` = tep.`period`
+        and bpcd.employee_id = tep.employee_id)
+        ;
+        drop temporary table if exists temp_project_cost_detail;
     </update>
 </mapper>

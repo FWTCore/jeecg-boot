@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.jeecg.modules.mzx.entity.BizProjectCostDetail;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,6 +47,15 @@ public interface BizProjectCostDetailMapper extends BaseMapper<BizProjectCostDet
      * @param projectIds
      * @param period
      */
-    void clearProjectCostDetail(@Param("projectIds") List<String> projectIds, @Param("period") Integer period);
+    void clearProjectCostDetailForProject(@Param("projectIds") List<String> projectIds, @Param("period") Integer period);
+
+
+    /**
+     * 数据清零
+     *
+     * @param dataList
+     */
+    @InterceptorIgnore(tenantLine = "true")
+    void clearProjectCostDetailForData(@Param("dataList") List<BizProjectCostDetail> dataList);
 
 }
