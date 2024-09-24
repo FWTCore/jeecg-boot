@@ -97,20 +97,12 @@
         create temporary table temp_project_cost_detail
         (
         project_id varchar(32),
-        project_name varchar(100),
-        `period` int null,
-        employee_id varchar(32),
-        employee_name varchar(100),
-        work_days decimal(8, 2),
-        comprehensive_subsidy decimal(20, 4),
-        labor_cost decimal(20, 4),
-        project_subsidy decimal(20, 4)
+        employee_id varchar(32)
         );
-        insert into temp_project_cost_detail(project_id, project_name, `period`, employee_id, employee_name,
-        work_days,comprehensive_subsidy, labor_cost, project_subsidy)
+        insert into temp_project_cost_detail(project_id, employee_id)
         values
         <foreach collection="dataList" item="data" separator=",">
-            (#{data.projectId},#{data.projectName},#{data.period},#{data.employeeId},#{data.employeeName},#{data.workDays},#{data.comprehensiveSubsidy},#{data.laborCost},#{data.projectSubsidy})
+            (#{data.projectId},#{data.employeeId})
         </foreach>
         ;
         update biz_project_cost_detail as bpcd
@@ -119,11 +111,15 @@
         labor_cost=0,
         work_days=0,
         update_time=now()
-        where not exists (
+        where period = #{period}
+        and project_id in
+        <foreach collection="projectIds" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and not exists (
         select 1
-        from temp_project_cost_detail as tep
-        where bpcd.project_id = tep.project_id and bpcd.`period` = tep.`period`
-        and bpcd.employee_id = tep.employee_id)
+        from temp_project_cost_detail as tep1
+        where bpcd.project_id = tep1.project_id and bpcd.employee_id = tep1.employee_id)
         ;
         drop temporary table if exists temp_project_cost_detail;
     </update>

@@ -52,10 +52,11 @@ public interface BizProjectCostDetailMapper extends BaseMapper<BizProjectCostDet
 
     /**
      * 数据清零
-     *
      * @param dataList
+     * @param projectIds
+     * @param period
      */
     @InterceptorIgnore(tenantLine = "true")
-    void clearProjectCostDetailForData(@Param("dataList") List<BizProjectCostDetail> dataList);
+    void clearProjectCostDetailForData(@Param("dataList") List<BizProjectCostDetail> dataList, @Param("projectIds") List<String> projectIds, @Param("period") Integer period);
 
 }

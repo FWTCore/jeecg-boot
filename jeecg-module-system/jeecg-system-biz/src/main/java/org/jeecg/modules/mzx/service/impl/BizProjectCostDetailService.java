@@ -126,7 +126,7 @@ public class BizProjectCostDetailService extends ServiceImpl<BizProjectCostDetai
             // 后新增
             projectCostDetailMapper.insertProjectCostDetail(projectCostDetails);
             // 后清理本次没存在的数据
-            projectCostDetailMapper.clearProjectCostDetailForData(projectCostDetails);
+            projectCostDetailMapper.clearProjectCostDetailForData(projectCostDetails, projectIdList, period);
         }
     }
 
