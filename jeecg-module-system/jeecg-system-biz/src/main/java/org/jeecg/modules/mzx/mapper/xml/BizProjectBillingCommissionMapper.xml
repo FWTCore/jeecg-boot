@@ -18,7 +18,6 @@
                  inner join biz_project_billing_detail as bpbd on bpb.project_id = bpbd.project_id
         where bpb.project_id = #{projectId}
           and bpb.del_flag = 0
-          and bpb.billing_status = 20
           and not exists(
                 select 1
                 from biz_project_billing_commission as bpbc
