@@ -75,7 +75,8 @@ public class ProjectCostController {
         resultList.setPages(pageList.getPages());
         resultList.setSize(pageList.getSize());
         resultList.setTotal(pageList.getTotal());
-        resultList.setRecords(getProjectCostDetail(pageList.getRecords()));
+        Map<String, List<Map<String, Object>>> projectCostDetail = getProjectCostDetail(pageList.getRecords());
+        resultList.setRecords(projectCostDetail.get("all_data"));
         result.setSuccess(true);
         result.setResult(resultList);
         return result;
@@ -96,26 +97,46 @@ public class ProjectCostController {
         // 获取字典配置
         List<DictModel> costList = sysDictService.queryDictItemsByCode("project_cost_key");
 
-        List<Map<String, Object>> resultList = getProjectCostDetail(pageList.getRecords());
+        Map<String, List<Map<String, Object>>> resultList = getProjectCostDetail(pageList.getRecords());
+
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
 
         //Step.2 AutoPoi 导出Excel
         ModelAndView mv = new ModelAndView(new XComEntityExcelView());
+
+        List<ExcelExportEntity> exportEntityList = new ArrayList<>();
+        exportEntityList.add(new ExcelExportEntity("项目名称", "projectName"));
+        exportEntityList.add(new ExcelExportEntity("服务人", "staff"));
+        exportEntityList.add(new ExcelExportEntity("时间", "createTime"));
+        for (DictModel dict : costList) {
+            exportEntityList.add(new ExcelExportEntity(dict.getText(), String.format("%s_cost", dict.getValue())));
+            exportEntityList.add(new ExcelExportEntity(String.format("%s_备注", dict.getText()), String.format("%s_remark", dict.getValue())));
+        }
+
+        List<Map<String, Object>> paramMapList = new ArrayList<>();
+        Map<String, Object> paramMap = new HashMap<>();
+        ExportParams exportParams = new ExportParams("全部项目费用列表", "导出人:" + user.getRealname(), "全部项目费用列表");
+
+        paramMap.put(NormalExcelConstants.PARAMS, exportParams);
+        paramMap.put("exportEntity", exportEntityList);
+        paramMap.put(NormalExcelConstants.DATA_LIST, resultList.get("all_data"));
+        paramMapList.add(paramMap);
+
+        for (Map.Entry<String, List<Map<String, Object>>> dataGroup : resultList.entrySet()) {
+            if (dataGroup.getKey().equals("all_data")) {
+                continue;
+            }
+            paramMap = new HashMap<>();
+            String[] keys = dataGroup.getKey().split("_");
+            exportParams = new ExportParams(keys[1] + "-项目费用列表", "导出人:" + user.getRealname(), keys[1] + "-项目费用列表");
+            paramMap.put(NormalExcelConstants.PARAMS, exportParams);
+            paramMap.put("exportEntity", exportEntityList);
+            paramMap.put(NormalExcelConstants.DATA_LIST, dataGroup.getValue());
+            paramMapList.add(paramMap);
+        }
+        mv.addObject(NormalExcelConstants.MAP_LIST, paramMapList);
         //导出文件名称
         mv.addObject(NormalExcelConstants.FILE_NAME, "项目费用列表");
-        List<ExcelExportEntity> mapList = new ArrayList<>();
-        mapList.add(new ExcelExportEntity("项目名称", "projectName"));
-        mapList.add(new ExcelExportEntity("服务人", "staff"));
-        mapList.add(new ExcelExportEntity("时间", "createTime"));
-        for (DictModel dict : costList) {
-            mapList.add(new ExcelExportEntity(dict.getText(), String.format("%s_cost", dict.getValue())));
-            mapList.add(new ExcelExportEntity(String.format("%s_备注", dict.getText()), String.format("%s_remark", dict.getValue())));
-        }
-        mv.addObject("exportEntity", mapList);
-        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        ExportParams exportParams = new ExportParams("项目费用列表", "导出人:" + user.getRealname(), "导出信息");
-        exportParams.setImageBasePath(upLoadPath);
-        mv.addObject(NormalExcelConstants.PARAMS, exportParams);
-        mv.addObject(NormalExcelConstants.DATA_LIST, resultList);
         return mv;
 
     }
@@ -165,8 +186,8 @@ public class ProjectCostController {
      * @param dataList
      * @return
      */
-    private List<Map<String, Object>> getProjectCostDetail(List<BizProjectCost> dataList) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
+    private Map<String, List<Map<String, Object>>> getProjectCostDetail(List<BizProjectCost> dataList) {
+        Map<String, List<Map<String, Object>>> resultList = new HashMap<>();
         if (CollectionUtils.isEmpty(dataList)) {
             return resultList;
         }
@@ -182,7 +203,7 @@ public class ProjectCostController {
         queryWrapper.in("period", dataList.stream().map(BizProjectCost::getPeriod).collect(Collectors.toList()));
         List<BizProjectCost> detailDataList = projectCostService.list(queryWrapper);
 
-
+        List<Map<String, Object>> allData = new ArrayList<>();
         for (BizProjectCost data : dataList) {
             // 确定当前 项目+服务人+周期 的补助
             List<BizProjectCost> collect = detailDataList.stream().filter(e -> e.getProjectId().equals(data.getProjectId()) && e.getStaffId().equals(data.getStaffId()) && e.getPeriod().equals(data.getPeriod())).collect(Collectors.toList());
@@ -215,8 +236,16 @@ public class ProjectCostController {
                 }
             }
             mp.put("cost_remark", costRemark);
-            resultList.add(mp);
+            String bizKey = mp.get("staffId") + "_" + mp.get("staff");
+            List<Map<String, Object>> maps = new ArrayList<>();
+            if (resultList.containsKey(bizKey)) {
+                maps = resultList.get(bizKey);
+            }
+            maps.add(mp);
+            resultList.put(bizKey, maps);
+            allData.add(mp);
         }
+        resultList.put("all_data", allData);
         return resultList;
     }
 

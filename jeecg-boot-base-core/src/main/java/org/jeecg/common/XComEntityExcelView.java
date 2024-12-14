@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller("XComEntityExcelView")
-public class XComEntityExcelView  extends MiniAbstractExcelView {
+public class XComEntityExcelView extends MiniAbstractExcelView {
 
     public XComEntityExcelView() {
         super();
@@ -35,20 +35,20 @@ public class XComEntityExcelView  extends MiniAbstractExcelView {
         }
 
         if (model.containsKey("mapList")) {
-            List<Map<String, Object>> list = (List)model.get("mapList");
+            List<Map<String, Object>> list = (List) model.get("mapList");
             if (list.size() == 0) {
                 throw new RuntimeException("MAP_LIST IS NULL");
             }
-
-            workbook = ExcelExportUtil.exportExcel((ExportParams)((Map)list.get(0)).get("params"), (List<ExcelExportEntity>)((Map)list.get(0)).get("exportEntity"), (Collection)((Map)list.get(0)).get("data"));
-
+            workbook = ExcelExportUtil.exportExcel((ExportParams) ((Map) list.get(0)).get("params"), (List<ExcelExportEntity>) ((Map) list.get(0)).get("exportEntity"), (Collection) ((Map) list.get(0)).get("data"));
+            for (int i = 1; i < list.size(); ++i) {
+                (new ExcelExportServer()).createSheetForMap(workbook, (ExportParams) ((Map) list.get(i)).get("params"), (List<ExcelExportEntity>) ((Map) list.get(0)).get("exportEntity"), (Collection) ((Map) list.get(i)).get("data"));
+            }
         } else {
-            Object dd= model.get("exportEntity");
-            workbook = ExcelExportUtil.exportExcel((ExportParams)model.get("params"), (List<ExcelExportEntity>)model.get("exportEntity"), (Collection)model.get("data"));
+            workbook = ExcelExportUtil.exportExcel((ExportParams) model.get("params"), (List<ExcelExportEntity>) model.get("exportEntity"), (Collection) model.get("data"));
         }
 
         if (model.containsKey("fileName")) {
-            codedFileName = (String)model.get("fileName");
+            codedFileName = (String) model.get("fileName");
         }
 
         if (workbook instanceof HSSFWorkbook) {
@@ -68,4 +68,5 @@ public class XComEntityExcelView  extends MiniAbstractExcelView {
         workbook.write(out);
         out.flush();
     }
+
 }
