@@ -257,6 +257,8 @@ public class ProjectScheduleController {
                 data.setArchiveFlag(projectScheduleLog.getArchiveFlag());
                 data.setNextPlanContent(projectScheduleLog.getNextPlanContent());
                 data.setNextPlanTime(projectScheduleLog.getNextPlanTime());
+                data.setProblem(projectScheduleLog.getProblem());
+                data.setSolution(projectScheduleLog.getSolution());
                 data.setUpdateTime(new Date());
                 projectScheduleLogService.updateById(data);
                 bizProjectChangeDetailService.insertOrUpdateData(projectScheduleLog.getProjectId(), data.getCreateTime());

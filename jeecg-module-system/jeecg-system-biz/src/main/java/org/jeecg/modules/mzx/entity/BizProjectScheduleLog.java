@@ -105,6 +105,16 @@ public class BizProjectScheduleLog implements Serializable {
     private String nextPlanContent;
 
     /**
+     * 问题
+     */
+    private String problem;
+    /**
+     * 解决方案
+     */
+    private String solution;
+
+
+    /**
      * 删除状态
      */
     @TableLogic
