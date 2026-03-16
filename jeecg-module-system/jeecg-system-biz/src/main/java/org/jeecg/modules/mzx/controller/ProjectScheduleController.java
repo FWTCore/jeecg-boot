@@ -194,7 +194,7 @@ public class ProjectScheduleController {
                         projectScheduleLog.setServiceType(null);
                     }
                     if (!checkNumber(projectScheduleLog.getServiceContent())) {
-                        throw new JeecgBootException("服务内容需要包含进度的描述");
+                        throw new JeecgBootException("服务内容需要有具体的工作量描述");
                     }
                     projectScheduleLogService.save(projectScheduleLog);
                 }
@@ -256,7 +256,7 @@ public class ProjectScheduleController {
                 }
                 data.setServiceContent(projectScheduleLog.getServiceContent());
                 if (!checkNumber(projectScheduleLog.getServiceContent())) {
-                    throw new JeecgBootException("服务内容需要包含进度的描述");
+                    throw new JeecgBootException("服务内容需要有具体的工作量描述");
                 }
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());
