@@ -52,6 +52,14 @@ public class ProjectScheduleQuery implements Serializable {
      * 服务内容
      */
     private String serviceContent;
+    /**
+     * 问题
+     */
+    private String problem;
+    /**
+     * 解决方案
+     */
+    private String solution;
 
     /**
      * 是否加班

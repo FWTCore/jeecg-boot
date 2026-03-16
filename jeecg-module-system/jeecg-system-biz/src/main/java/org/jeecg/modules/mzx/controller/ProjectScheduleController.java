@@ -106,6 +106,12 @@ public class ProjectScheduleController {
         if (ObjectUtil.isNotNull(serviceLog.getServiceContent())) {
             queryWrapper.like(BizProjectScheduleLog::getServiceContent, serviceLog.getServiceContent());
         }
+        if (ObjectUtil.isNotNull(serviceLog.getProblem())) {
+            queryWrapper.like(BizProjectScheduleLog::getProblem, serviceLog.getProblem());
+        }
+        if (ObjectUtil.isNotNull(serviceLog.getSolution())) {
+            queryWrapper.like(BizProjectScheduleLog::getSolution, serviceLog.getSolution());
+        }
         if (ObjectUtil.isNotNull(serviceLog.getOvertimeFlag())) {
             queryWrapper.eq(BizProjectScheduleLog::getOvertimeFlag, serviceLog.getOvertimeFlag());
         }
@@ -187,6 +193,9 @@ public class ProjectScheduleController {
                     if (StringUtils.isBlank(projectScheduleLog.getServiceType())) {
                         projectScheduleLog.setServiceType(null);
                     }
+                    if (checkNumber(projectScheduleLog.getServiceContent())) {
+                        throw new JeecgBootException("服务内容不能包含1-100的数字");
+                    }
                     projectScheduleLogService.save(projectScheduleLog);
                 }
                 result.success("保存成功！");
@@ -246,6 +255,9 @@ public class ProjectScheduleController {
                     data.setServiceType(projectScheduleLog.getServiceType());
                 }
                 data.setServiceContent(projectScheduleLog.getServiceContent());
+                if (checkNumber(projectScheduleLog.getServiceContent())) {
+                    throw new JeecgBootException("服务内容不能包含1-100的数字");
+                }
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());
                 if (ObjectUtil.isNull(projectScheduleLog.getOvertimeFlag()) || projectScheduleLog.getOvertimeFlag() != 1) {
@@ -336,6 +348,13 @@ public class ProjectScheduleController {
             result.setSuccess(true);
         }
         return result;
+    }
+
+    private boolean checkNumber(String logContent) {
+        if (StringUtils.isBlank(logContent)) {
+            return false;
+        }
+        return logContent.matches(".*\\b([1-9]|[1-9]\\d|100)\\b.*");
     }
 
 }
