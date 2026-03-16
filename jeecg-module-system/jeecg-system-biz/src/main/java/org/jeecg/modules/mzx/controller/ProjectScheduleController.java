@@ -193,8 +193,8 @@ public class ProjectScheduleController {
                     if (StringUtils.isBlank(projectScheduleLog.getServiceType())) {
                         projectScheduleLog.setServiceType(null);
                     }
-                    if (checkNumber(projectScheduleLog.getServiceContent())) {
-                        throw new JeecgBootException("服务内容不能包含1-100的数字");
+                    if (!checkNumber(projectScheduleLog.getServiceContent())) {
+                        throw new JeecgBootException("服务内容需要包含进度的描述");
                     }
                     projectScheduleLogService.save(projectScheduleLog);
                 }
@@ -255,8 +255,8 @@ public class ProjectScheduleController {
                     data.setServiceType(projectScheduleLog.getServiceType());
                 }
                 data.setServiceContent(projectScheduleLog.getServiceContent());
-                if (checkNumber(projectScheduleLog.getServiceContent())) {
-                    throw new JeecgBootException("服务内容不能包含1-100的数字");
+                if (!checkNumber(projectScheduleLog.getServiceContent())) {
+                    throw new JeecgBootException("服务内容需要包含进度的描述");
                 }
                 data.setWorkHours(projectScheduleLog.getWorkHours());
                 data.setOvertimeFlag(projectScheduleLog.getOvertimeFlag());
