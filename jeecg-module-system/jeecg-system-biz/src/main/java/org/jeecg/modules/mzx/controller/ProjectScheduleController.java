@@ -354,7 +354,7 @@ public class ProjectScheduleController {
         if (StringUtils.isBlank(logContent)) {
             return false;
         }
-        return logContent.matches(".*\\b([1-9]|[1-9]\\d|100)\\b.*");
+        return logContent.matches(".*\\d+.*");
     }
 
 }
