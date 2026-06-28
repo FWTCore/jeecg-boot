@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `biz_overtime_record` (
   PRIMARY KEY (`id`),
   KEY `idx_staff_date` (`staff_id`, `overtime_date`),
   KEY `idx_confirm_status` (`confirm_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='加班记录表';
+) ENGINE=InnoDB COMMENT='加班记录表';
 
 -- 2. 创建确认状态字典
 INSERT INTO sys_dict (id, dict_name, dict_code, description, del_flag, create_by, create_time, type)

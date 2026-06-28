@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.mzx.mapper.BizLeaveRecordMapper">
+
+    <!-- 获取员工已使用调休时长 -->
+    <select id="getUsedLeaveHours" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(leave_hours), 0)
+        FROM biz_leave_record
+        WHERE del_flag = 0
+          AND staff_id = #{staffId}
+    </select>
+
+    <!-- 获取员工已确认加班时长（不限时间范围） -->
+    <select id="getConfirmedOvertimeHours" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(overtime_hours), 0)
+        FROM biz_overtime_record
+        WHERE del_flag = 0
+          AND confirm_status = 1
+          AND staff_id = #{staffId}
+    </select>
+
+    <!-- 员工调休统计（以员工薪资表为基准） -->
+    <select id="getLeaveStatisticsPage" resultType="org.jeecg.modules.mzx.vo.EmployeeLeaveStatisticsVO">
+        SELECT
+            es.employee_id AS employeeId,
+            es.employee_name AS employeeName,
+            IFNULL(SUM(CASE WHEN o.del_flag = 0 THEN o.overtime_hours ELSE 0 END), 0) AS totalOvertimeHours,
+            IFNULL(SUM(CASE WHEN o.del_flag = 0 AND o.confirm_status = 0 THEN o.overtime_hours ELSE 0 END), 0) AS pendingOvertimeHours,
+            IFNULL(SUM(CASE WHEN o.del_flag = 0 AND o.confirm_status = 1 THEN o.overtime_hours ELSE 0 END), 0) AS confirmedOvertimeHours,
+            IFNULL((
+                SELECT SUM(l.leave_hours)
+                FROM biz_leave_record l
+                WHERE l.del_flag = 0 AND l.staff_id = es.employee_id
+            ), 0) AS usedLeaveHours
+        FROM biz_employee_salary es
+        LEFT JOIN biz_overtime_record o ON es.employee_id = o.staff_id
+        WHERE es.del_flag = 0
+        <if test="employeeId != null and employeeId != ''">
+            AND es.employee_id = #{employeeId}
+        </if>
+        <if test="employeeName != null and employeeName != ''">
+            AND es.employee_name LIKE CONCAT('%', #{employeeName}, '%')
+        </if>
+        GROUP BY es.employee_id, es.employee_name
+        ORDER BY totalOvertimeHours DESC, es.employee_name ASC
+    </select>
+
+</mapper>

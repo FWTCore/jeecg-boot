@@ -14,7 +14,10 @@ import java.util.Date;
 public class OvertimeRecordQuery implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
+    /**
+     * 员工ID
+     */
+    private String staffId;
     /**
      * 员工姓名（模糊查询）
      */

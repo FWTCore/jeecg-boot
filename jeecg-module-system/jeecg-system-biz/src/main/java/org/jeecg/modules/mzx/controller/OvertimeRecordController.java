@@ -60,6 +60,9 @@ public class OvertimeRecordController {
         if (ObjectUtil.isNotNull(query.getStaffName())) {
             queryWrapper.like(BizOvertimeRecord::getStaffName, query.getStaffName());
         }
+        if (ObjectUtil.isNotNull(query.getStaffId())) {
+            queryWrapper.like(BizOvertimeRecord::getStaffId, query.getStaffId());
+        }
         if (ObjectUtil.isNotNull(query.getOvertimeDateBegin())) {
             queryWrapper.ge(BizOvertimeRecord::getOvertimeDate, query.getOvertimeDateBegin());
         }
