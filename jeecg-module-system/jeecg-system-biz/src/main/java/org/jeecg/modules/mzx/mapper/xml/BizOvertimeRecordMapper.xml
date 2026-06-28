@@ -23,4 +23,19 @@
           AND overtime_date = #{overtimeDate}
     </select>
 
+    <!-- 按项目统计已确认的加班时长（不限时间范围） -->
+    <select id="sumOvertimeHoursByProject" resultType="org.jeecg.modules.mzx.model.OvertimeHoursModel">
+        SELECT
+            project_id AS projectId,
+            IFNULL(SUM(overtime_hours), 0) AS overtimeHours
+        FROM biz_overtime_record
+        WHERE del_flag = 0
+          AND confirm_status = 1
+          AND project_id IN
+          <foreach collection="projectIds" item="projectId" separator="," open="(" close=")">
+              #{projectId}
+          </foreach>
+        GROUP BY project_id
+    </select>
+
 </mapper>

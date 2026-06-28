@@ -2,9 +2,11 @@ package org.jeecg.modules.mzx.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.jeecg.modules.mzx.entity.BizOvertimeRecord;
+import org.jeecg.modules.mzx.model.OvertimeHoursModel;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 加班记录服务接口
@@ -66,4 +68,12 @@ public interface IBizOvertimeRecordService extends IService<BizOvertimeRecord> {
      * @return 校验结果消息，null表示校验通过
      */
     String validateOvertimeDate(String staffId, Date overtimeDate, String projectId, String excludeId);
+
+    /**
+     * 按项目统计已确认的加班时长（不限时间范围）
+     *
+     * @param projectIds 项目ID列表
+     * @return 项目加班时长汇总列表
+     */
+    List<OvertimeHoursModel> sumOvertimeHoursByProject(List<String> projectIds);
 }

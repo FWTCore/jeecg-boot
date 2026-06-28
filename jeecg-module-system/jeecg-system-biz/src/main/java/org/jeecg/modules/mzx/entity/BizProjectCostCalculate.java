@@ -64,6 +64,11 @@ public class BizProjectCostCalculate implements Serializable {
     @Excel(name = "实施提成", width = 15)
     private BigDecimal implementCommission;
     /**
+     * 加班时长（小时）
+     */
+    @Excel(name = "加班时长", width = 15)
+    private BigDecimal overtimeHours;
+    /**
      * 成本率
      */
     @Excel(name = "成本率", width = 15)

@@ -1,5 +1,6 @@
 package org.jeecg.modules.mzx.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -10,14 +11,18 @@ import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.modules.mzx.entity.BizOvertimeRecord;
 import org.jeecg.modules.mzx.entity.BizProject;
 import org.jeecg.modules.mzx.mapper.BizOvertimeRecordMapper;
+import org.jeecg.modules.mzx.model.OvertimeHoursModel;
 import org.jeecg.modules.mzx.service.IBizOvertimeRecordService;
+import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 加班记录服务实现
@@ -35,6 +40,9 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
 
     @Autowired
     private IBizProjectScheduleItemUsageService projectScheduleItemUsageService;
+
+    @Autowired
+    private IBizProjectChangeDetailService projectChangeDetailService;
 
     /**
      * 加班时长上限（单次最多8小时）
@@ -95,10 +103,16 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
             overtimeRecord.setConfirmStatus(0); // 待确认
             overtimeRecord.setDelFlag(CommonConstant.DEL_FLAG_0);
             overtimeRecord.setCreateTime(new Date());
-            return this.save(overtimeRecord);
+            boolean result = this.save(overtimeRecord);
+            // 记录项目变更（用于成本核算定时任务判断是否有数据变动）
+            recordProjectChangeIfNeeded(result, overtimeRecord.getProjectId());
+            return result;
         } else {
             // 更新
-            return this.updateById(overtimeRecord);
+            boolean result = this.updateById(overtimeRecord);
+            // 记录项目变更
+            recordProjectChangeIfNeeded(result, overtimeRecord.getProjectId());
+            return result;
         }
     }
 
@@ -118,7 +132,10 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
         record.setConfirmTime(new Date());
         record.setUpdateTime(new Date());
 
-        return this.updateById(record);
+        boolean result = this.updateById(record);
+        // 记录项目变更（确认后会影响加班时长统计）
+        recordProjectChangeIfNeeded(result, record.getProjectId());
+        return result;
     }
 
     @Override
@@ -169,5 +186,26 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
         }
 
         return null; // 校验通过
+    }
+
+    @Override
+    public List<OvertimeHoursModel> sumOvertimeHoursByProject(List<String> projectIds) {
+        if (CollectionUtil.isEmpty(projectIds)) {
+            return new ArrayList<>();
+        }
+        return overtimeRecordMapper.sumOvertimeHoursByProject(projectIds);
+    }
+
+    /**
+     * 记录项目变更（用于成本核算定时任务判断是否有数据变动）
+     * 使用当前时间触发变更，因为可能编辑/确认历史数据
+     *
+     * @param result    数据库操作结果
+     * @param projectId 项目ID
+     */
+    private void recordProjectChangeIfNeeded(boolean result, String projectId) {
+        if (result && StringUtils.isNotBlank(projectId)) {
+            projectChangeDetailService.insertOrUpdateData(projectId);
+        }
     }
 }
