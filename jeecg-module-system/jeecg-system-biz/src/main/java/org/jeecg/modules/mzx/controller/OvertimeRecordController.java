@@ -214,7 +214,7 @@ public class OvertimeRecordController {
                 }
             }
 
-            overtimeRecordService.removeByIds(idList);
+            overtimeRecordService.deleteOvertimeRecordBatch(idList);
             result.success("删除成功！");
         }
         return result;
@@ -238,7 +238,7 @@ public class OvertimeRecordController {
                     throw new JeecgBootException("只能删除待确认的记录");
                 }
             }
-            overtimeRecordService.removeById(id);
+            overtimeRecordService.deleteOvertimeRecord(id);
             result.success("删除成功！");
         }
         return result;

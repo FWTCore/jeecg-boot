@@ -196,6 +196,45 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
         return overtimeRecordMapper.sumOvertimeHoursByProject(projectIds);
     }
 
+    @Override
+    public boolean deleteOvertimeRecord(String id) {
+        BizOvertimeRecord record = this.getById(id);
+        if (record == null) {
+            return false;
+        }
+        boolean result = this.removeById(id);
+        // 记录项目变更（删除后会影响加班时长统计）
+        recordProjectChangeIfNeeded(result, record.getProjectId());
+        return result;
+    }
+
+    @Override
+    public boolean deleteOvertimeRecordBatch(List<String> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
+            return false;
+        }
+        // 先查询所有要删除的记录，获取关联的项目ID
+        List<BizOvertimeRecord> records = this.listByIds(ids);
+        if (CollectionUtil.isEmpty(records)) {
+            return false;
+        }
+
+        boolean result = this.removeByIds(ids);
+
+        // 批量记录项目变更（去重）
+        if (result) {
+            List<String> projectIds = records.stream()
+                    .map(BizOvertimeRecord::getProjectId)
+                    .filter(StringUtils::isNotBlank)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+            for (String projectId : projectIds) {
+                recordProjectChangeIfNeeded(true, projectId);
+            }
+        }
+        return result;
+    }
+
     /**
      * 记录项目变更（用于成本核算定时任务判断是否有数据变动）
      * 使用当前时间触发变更，因为可能编辑/确认历史数据

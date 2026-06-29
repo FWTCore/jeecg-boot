@@ -76,4 +76,20 @@ public interface IBizOvertimeRecordService extends IService<BizOvertimeRecord> {
      * @return 项目加班时长汇总列表
      */
     List<OvertimeHoursModel> sumOvertimeHoursByProject(List<String> projectIds);
+
+    /**
+     * 删除加班记录（单个删除）
+     *
+     * @param id 加班记录ID
+     * @return 是否成功
+     */
+    boolean deleteOvertimeRecord(String id);
+
+    /**
+     * 批量删除加班记录
+     *
+     * @param ids 加班记录ID列表
+     * @return 是否成功
+     */
+    boolean deleteOvertimeRecordBatch(List<String> ids);
 }
