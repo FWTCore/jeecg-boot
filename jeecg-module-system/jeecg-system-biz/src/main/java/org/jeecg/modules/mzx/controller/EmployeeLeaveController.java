@@ -67,7 +67,7 @@ public class EmployeeLeaveController {
             queryWrapper.like(BizLeaveRecord::getStaffName, staffName);
         }
 
-        queryWrapper.orderByDesc(BizLeaveRecord::getCreateTime);
+        queryWrapper.orderByDesc(BizLeaveRecord::getLeaveDate);
         Page<BizLeaveRecord> page = new Page<>(pageNo, pageSize);
         IPage<BizLeaveRecord> pageList = leaveRecordService.page(page, queryWrapper);
         result.setSuccess(true);
