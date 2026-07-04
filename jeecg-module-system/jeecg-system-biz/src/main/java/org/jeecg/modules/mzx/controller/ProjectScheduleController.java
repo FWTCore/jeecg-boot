@@ -387,8 +387,7 @@ public class ProjectScheduleController {
         Date endTime = instance.getTime();
 
         // 查询当日已填工时（单位：天），转换为小时统一计算
-        BigDecimal existWorkHoursInDay = bizWorkHoursService.getTotalWorkHours(staffId, startTime, endTime);
-        BigDecimal existWorkHoursInHour = existWorkHoursInDay.multiply(WORK_HOURS_PER_DAY);
+        BigDecimal existWorkHoursInHour = bizWorkHoursService.getTotalWorkHours(staffId, startTime, endTime);
 
         // 计算总工时（单位：小时）
         BigDecimal totalWorkHoursInHour = existWorkHoursInHour.add(currentWorkHoursHour);

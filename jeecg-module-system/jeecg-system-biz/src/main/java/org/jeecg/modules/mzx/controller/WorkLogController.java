@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,6 +40,16 @@ import java.util.List;
 @RequestMapping("/worklog")
 @Slf4j
 public class WorkLogController {
+
+    /**
+     * 每天工作小时数常量
+     */
+    private static final BigDecimal WORK_HOURS_PER_DAY = new BigDecimal("8");
+
+    /**
+     * 工时校验阈值（容忍精度误差）
+     */
+    private static final BigDecimal WORK_HOURS_THRESHOLD = new BigDecimal("8.02");
 
     @Autowired
     private IBizWorkLogService workLogService;
@@ -99,18 +110,16 @@ public class WorkLogController {
             workLog.setCreateTime(new Date());
             workLog.setDelFlag(CommonConstant.DEL_FLAG_0);
 
-            // 校验总时长
-            Calendar instance = Calendar.getInstance();
-            Date startTime = DateUtil.beginOfDay(workLog.getCreateTime());
-            instance.setTime(startTime);
-            instance.add(Calendar.DAY_OF_MONTH, 1);
-            Date endTime = instance.getTime();
-            BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(sysUser.getId(), startTime, endTime);
-            BigDecimal totalWorkHours = workHours.add(workLog.getWorkHours());
-            // 工时大于1
-            if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
-                throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours)));
+            // 工时双写：小时转天，保留3位小数
+            if (workLog.getWorkHoursHour() != null) {
+                BigDecimal workHours = workLog.getWorkHoursHour()
+                    .divide(WORK_HOURS_PER_DAY, 3, RoundingMode.HALF_UP);
+                workLog.setWorkHours(workHours);
             }
+
+            // 校验工时是否超过每日限制
+            validateWorkHoursLimit(sysUser.getId(), workLog.getCreateTime(),
+                workLog.getWorkHoursHour(), null);
 
             workLogService.save(workLog);
             result.success("保存成功！");
@@ -141,22 +150,21 @@ public class WorkLogController {
                     throw new JeecgBootException("只能编辑自己的数据");
                 }
             }
-            // 校验总时长
-            Calendar instance = Calendar.getInstance();
-            Date startTime = DateUtil.beginOfDay(data.getCreateTime());
-            instance.setTime(startTime);
-            instance.add(Calendar.DAY_OF_MONTH, 1);
-            Date endTime = instance.getTime();
-            BigDecimal workHours = bizWorkHoursService.getTotalWorkHours(data.getStaffId(), startTime, endTime);
-            BigDecimal totalWorkHours = workHours.add(workLog.getWorkHours());
-            totalWorkHours = totalWorkHours.subtract(data.getWorkHours());
-            // 工时大于1
-            if (totalWorkHours.compareTo(BigDecimal.ONE) > 0) {
-                throw new JeecgBootException(String.format("日期：%s 填写工时累计大于1天，剩余【%s】天可填", DateUtil.format(startTime, "yyyy-MM-dd“"), BigDecimal.ONE.subtract(workHours).add(data.getWorkHours())));
+
+            // 工时双写：小时转天，保留3位小数（必须在校验之前执行）
+            if (workLog.getWorkHoursHour() != null) {
+                BigDecimal workHours = workLog.getWorkHoursHour()
+                    .divide(WORK_HOURS_PER_DAY, 3, RoundingMode.HALF_UP);
+                workLog.setWorkHours(workHours);
             }
+
+            // 校验工时是否超过每日限制（编辑时需扣除原记录工时）
+            validateWorkHoursLimit(data.getStaffId(), data.getCreateTime(),
+                workLog.getWorkHoursHour(), data.getWorkHoursHour());
 
             data.setServiceContent(workLog.getServiceContent());
             data.setWorkHours(workLog.getWorkHours());
+            data.setWorkHoursHour(workLog.getWorkHoursHour());
             data.setNextPlanContent(workLog.getNextPlanContent());
             data.setNextPlanTime(workLog.getNextPlanTime());
             data.setUpdateTime(new Date());
@@ -222,5 +230,49 @@ public class WorkLogController {
         return result;
     }
 
+    /**
+     * 校验工时是否超过每日限制
+     *
+     * @param staffId              员工ID
+     * @param workDate             工作日期
+     * @param currentWorkHoursHour 当前工时（小时）
+     * @param originalWorkHoursHour 原工时（小时），编辑时传入，新增时传null
+     */
+    private void validateWorkHoursLimit(String staffId, Date workDate,
+                                        BigDecimal currentWorkHoursHour, BigDecimal originalWorkHoursHour) {
+        if (currentWorkHoursHour == null || currentWorkHoursHour.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        // 计算当日时间范围
+        Date startTime = DateUtil.beginOfDay(workDate);
+        Calendar instance = Calendar.getInstance();
+        instance.setTime(startTime);
+        instance.add(Calendar.DAY_OF_MONTH, 1);
+        Date endTime = instance.getTime();
+
+        // 查询当日已填工时（单位：天），转换为小时统一计算
+        BigDecimal existWorkHoursInHour = bizWorkHoursService.getTotalWorkHours(staffId, startTime, endTime);
+
+        // 计算总工时（单位：小时）
+        BigDecimal totalWorkHoursInHour = existWorkHoursInHour.add(currentWorkHoursHour);
+
+        // 编辑时需扣除原记录工时
+        if (originalWorkHoursHour != null) {
+            totalWorkHoursInHour = totalWorkHoursInHour.subtract(originalWorkHoursHour);
+        }
+
+        // 工时超过限制（容忍精度误差）
+        if (totalWorkHoursInHour.compareTo(WORK_HOURS_THRESHOLD) > 0) {
+            // 计算剩余可填工时：8小时 - 其他记录工时
+            BigDecimal otherRecordsHours = existWorkHoursInHour;
+            if (originalWorkHoursHour != null) {
+                otherRecordsHours = existWorkHoursInHour.subtract(originalWorkHoursHour);
+            }
+            BigDecimal remainHours = WORK_HOURS_PER_DAY.subtract(otherRecordsHours);
+            throw new JeecgBootException(String.format("日期：%s 填写工时累计超过8小时，剩余【%s】小时可填",
+                DateUtil.format(startTime, "yyyy-MM-dd"), remainHours.setScale(1, RoundingMode.HALF_UP)));
+        }
+    }
 
 }

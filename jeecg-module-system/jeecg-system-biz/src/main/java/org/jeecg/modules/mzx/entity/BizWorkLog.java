@@ -40,9 +40,14 @@ public class BizWorkLog implements Serializable {
     private String serviceContent;
 
     /**
-     * 工时
+     * 工时(天) - 用于成本核算
      */
     private BigDecimal workHours;
+
+    /**
+     * 工时(小时) - 用于录入和展示
+     */
+    private BigDecimal workHoursHour;
 
     /**
      * 下一步计划时间
