@@ -3,6 +3,7 @@ package org.jeecg.modules.mzx.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.jeecg.modules.mzx.entity.BizOvertimeRecord;
 import org.jeecg.modules.mzx.model.OvertimeHoursModel;
+import org.jeecg.modules.mzx.vo.BatchConfirmResultVO;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -92,4 +93,15 @@ public interface IBizOvertimeRecordService extends IService<BizOvertimeRecord> {
      * @return 是否成功
      */
     boolean deleteOvertimeRecordBatch(List<String> ids);
+
+    /**
+     * 批量确认加班记录
+     * 自动忽略已确认的记录，只处理待确认状态的记录
+     *
+     * @param ids 加班记录ID列表
+     * @param confirmerId 确认人ID
+     * @param confirmerName 确认人姓名
+     * @return 批量确认结果（包含成功、跳过、失败的数量和ID列表）
+     */
+    BatchConfirmResultVO batchConfirmOvertime(List<String> ids, String confirmerId, String confirmerName);
 }

@@ -18,6 +18,7 @@ import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.mzx.entity.BizOvertimeRecord;
 import org.jeecg.modules.mzx.service.IBizOvertimeRecordService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
+import org.jeecg.modules.mzx.vo.BatchConfirmResultVO;
 import org.jeecg.modules.mzx.vo.OvertimeRecordQuery;
 import org.jeecg.modules.mzx.vo.ProjectScheduleVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,6 +197,31 @@ public class OvertimeRecordController {
             LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
             overtimeRecordService.confirmOvertime(overtimeRecord.getId(), sysUser.getId(), sysUser.getRealname());
             result.success("确认成功！");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            result.error500(e.getMessage());
+        }
+        return result;
+    }
+
+    @ApiOperation("批量确认加班申请")
+    @RequestMapping(value = "/confirmBatch", method = RequestMethod.POST)
+    public Result<BatchConfirmResultVO> confirmBatch(@RequestBody List<String> ids) {
+        Result<BatchConfirmResultVO> result = new Result<>();
+        try {
+            Subject subject = SecurityUtils.getSubject();
+            if (!subject.isPermitted("office:management")) {
+                throw new JeecgBootException("只有管理人员才能确认加班申请");
+            }
+
+            LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            BatchConfirmResultVO confirmResult = overtimeRecordService.batchConfirmOvertime(
+                    ids, sysUser.getId(), sysUser.getRealname());
+
+            String msg = String.format("批量确认完成：成功%d条，跳过%d条（已确认），失败%d条",
+                    confirmResult.getSuccessCount(), confirmResult.getSkippedCount(), confirmResult.getFailedCount());
+            result.success(msg);
+            result.setResult(confirmResult);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             result.error500(e.getMessage());

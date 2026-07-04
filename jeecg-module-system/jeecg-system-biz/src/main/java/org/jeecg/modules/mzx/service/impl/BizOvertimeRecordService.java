@@ -16,6 +16,7 @@ import org.jeecg.modules.mzx.service.IBizOvertimeRecordService;
 import org.jeecg.modules.mzx.service.IBizProjectChangeDetailService;
 import org.jeecg.modules.mzx.service.IBizProjectScheduleItemUsageService;
 import org.jeecg.modules.mzx.service.IBizProjectService;
+import org.jeecg.modules.mzx.vo.BatchConfirmResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -246,5 +247,60 @@ public class BizOvertimeRecordService extends ServiceImpl<BizOvertimeRecordMappe
         if (result && StringUtils.isNotBlank(projectId)) {
             projectChangeDetailService.insertOrUpdateData(projectId);
         }
+    }
+
+    @Override
+    public BatchConfirmResultVO batchConfirmOvertime(List<String> ids, String confirmerId, String confirmerName) {
+        BatchConfirmResultVO result = new BatchConfirmResultVO();
+        result.setSuccessIds(new ArrayList<>());
+        result.setSkippedIds(new ArrayList<>());
+
+        if (CollectionUtil.isEmpty(ids)) {
+            result.setSuccessCount(0);
+            result.setSkippedCount(0);
+            result.setFailedCount(0);
+            return result;
+        }
+
+        // 查询所有记录
+        List<BizOvertimeRecord> records = this.listByIds(ids);
+        List<String> projectIds = new ArrayList<>();
+
+        for (BizOvertimeRecord record : records) {
+            // 跳过已删除的记录
+            if (record.getDelFlag().equals(CommonConstant.DEL_FLAG_1)) {
+                continue;
+            }
+            // 跳过已确认的记录（自动忽略）
+            if (record.getConfirmStatus() != 0) {
+                result.getSkippedIds().add(record.getId());
+                continue;
+            }
+
+            // 执行确认
+            record.setConfirmStatus(1); // 已确认
+            record.setConfirmerId(confirmerId);
+            record.setConfirmerName(confirmerName);
+            record.setConfirmTime(new Date());
+            record.setUpdateTime(new Date());
+
+            boolean updated = this.updateById(record);
+            if (updated) {
+                result.getSuccessIds().add(record.getId());
+                if (StringUtils.isNotBlank(record.getProjectId())) {
+                    projectIds.add(record.getProjectId());
+                }
+            }
+        }
+
+        // 批量记录项目变更（去重）
+        projectIds.stream().distinct().forEach(projectId ->
+                recordProjectChangeIfNeeded(true, projectId));
+
+        result.setSuccessCount(result.getSuccessIds().size());
+        result.setSkippedCount(result.getSkippedIds().size());
+        result.setFailedCount(ids.size() - result.getSuccessCount() - result.getSkippedCount());
+
+        return result;
     }
 }
