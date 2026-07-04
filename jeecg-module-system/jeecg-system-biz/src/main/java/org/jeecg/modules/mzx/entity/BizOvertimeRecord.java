@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.jeecg.common.aspect.annotation.Dict;
+import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -87,6 +88,13 @@ public class BizOvertimeRecord implements Serializable {
      * 服务内容
      */
     private String serviceContent;
+
+    /**
+     * 是否与企业微信打卡时间一致，0=否，1=是
+     */
+    @Excel(name = "是否与企微打卡一致", width = 15, dicCode = "yn")
+    @Dict(dicCode = "yn")
+    private Integer weworkClockMatchFlag;
 
     /**
      * 确认状态（字典：overtime_confirm_status）

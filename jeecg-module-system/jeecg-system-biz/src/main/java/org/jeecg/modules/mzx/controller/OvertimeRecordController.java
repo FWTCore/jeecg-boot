@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.jeecg.common.api.vo.Result;
@@ -98,7 +99,7 @@ public class OvertimeRecordController {
             queryWrapper.eq(BizOvertimeRecord::getStaffId, sysUser.getId());
         }
 
-        queryWrapper.orderByDesc(BizOvertimeRecord::getCreateTime);
+        queryWrapper.orderByDesc(BizOvertimeRecord::getOvertimeDate);
         Page<BizOvertimeRecord> page = new Page<>(pageNo, pageSize);
         IPage<BizOvertimeRecord> pageList = overtimeRecordService.page(page, queryWrapper);
         result.setSuccess(true);
@@ -111,9 +112,15 @@ public class OvertimeRecordController {
     public Result<BizOvertimeRecord> add(@RequestBody BizOvertimeRecord overtimeRecord) {
         Result<BizOvertimeRecord> result = new Result<>();
         try {
+            // 校验必填字段
+            if (overtimeRecord.getWeworkClockMatchFlag() == null) {
+                throw new JeecgBootException("是否与企业微信打卡时间一致为必填项");
+            }
+
             LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-            overtimeRecord.setStaffId(sysUser.getId());
-            overtimeRecord.setStaffName(sysUser.getRealname());
+            if(StringUtils.isBlank(overtimeRecord.getStaffId())){
+                overtimeRecord.setStaffId(sysUser.getId());
+            }
             overtimeRecord.setCreateBy(sysUser.getUsername());
 
             overtimeRecordService.submitOvertime(overtimeRecord);
@@ -153,6 +160,11 @@ public class OvertimeRecordController {
                 throw new JeecgBootException(validateMsg);
             }
 
+            // 校验必填字段
+            if (overtimeRecord.getWeworkClockMatchFlag() == null) {
+                throw new JeecgBootException("是否与企业微信打卡时间一致为必填项");
+            }
+
             data.setOvertimeDate(overtimeRecord.getOvertimeDate());
             data.setOvertimeHours(overtimeRecord.getOvertimeHours());
             data.setOvertimeReason(overtimeRecord.getOvertimeReason());
@@ -160,6 +172,7 @@ public class OvertimeRecordController {
             data.setProjectScheduleUsageItemId(overtimeRecord.getProjectScheduleUsageItemId());
             data.setServiceType(overtimeRecord.getServiceType());
             data.setServiceContent(overtimeRecord.getServiceContent());
+            data.setWeworkClockMatchFlag(overtimeRecord.getWeworkClockMatchFlag());
             data.setUpdateBy(sysUser.getUsername());
             data.setUpdateTime(new Date());
 
